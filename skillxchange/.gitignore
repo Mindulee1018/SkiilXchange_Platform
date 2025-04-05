@@ -4,6 +4,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .env
+node_modules/
+package-lock.json
+package.json
+
 
 ### STS ###
 .apt_generated
