@@ -1,54 +1,30 @@
 // src/pages/Dashboard.jsx
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import Navbar from '../../components/navbar';
+import footerSection from '../../components/footer';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-
-  const [tasks, setTasks] = useState([]);
-  const [learningPeriod, setLearningPeriod] = useState(1);
-  const [customRange, setCustomRange] = useState(false);
-  const [maxWeeks, setMaxWeeks] = useState(1);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
 
-  const handleLearningPeriodChange = (e) => {
-    const value = e.target.value;
-    setLearningPeriod(value);
-    setCustomRange(value === 'Custom');
-    setMaxWeeks(value !== 'Custom' ? parseInt(value) : 0);
-    setTasks([]); // Reset tasks when learning period changes
-  };
 
-  const handleAddTask = () => {
-    if (maxWeeks && tasks.length >= maxWeeks) {
-      alert('You can only add tasks up to the selected learning period!');
-      return;
-    }
-
-    setTasks([...tasks, { id: tasks.length + 1, taskTitle: '', instructions: '', file: '' }]);
-  };
-
-  const handleRemoveTask = (id) => {
-    setTasks(tasks.filter(task => task.id !== id));
-  };
-
-  const handleTaskChange = (id, field, value) => {
-    setTasks(tasks.map(task => (task.id === id ? { ...task, [field]: value } : task)));
-  };
 
   return (
     <>
+      <Navbar />
       <header className="bg-light text-center py-5">
         <h1>Welcome to SkillXchange</h1>
         <p>Enhance your skills with our expert-guided courses</p>
       </header>
 
       <section id="courses" className="container py-5">
-        <a href="#" className="btn btn-primary">CREATE YOUR OWN PLAN</a>
+        <Link to="/plan-template" className="btn btn-primary">CREATE YOUR OWN PLAN</Link>
+
         <h2 className="text-center">Explore Skill Plans</h2>
         <div className="row">
           <div className="col-md-4">
@@ -92,9 +68,7 @@ const Dashboard = () => {
         </div>
       </section>
 
-      <footer className="bg-dark text-white text-center py-3">
-        <p>&copy; 2025 SkillXchange. All Rights Reserved.</p>
-      </footer>
+      <footerSection/>
     </>
   );
 };
