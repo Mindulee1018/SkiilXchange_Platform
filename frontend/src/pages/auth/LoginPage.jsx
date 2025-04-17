@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import LoginForm from "../../components/auth/LoginForm";
 import GoogleLoginButton from "../../components/auth/GoogleLoginButton";
-import Navbar from "../../components/navbar";
+import Navbar from "../../components/common/navbar";
 import { Link } from "react-router-dom";
 
 const LoginPage = () => {
