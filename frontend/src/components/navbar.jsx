@@ -1,12 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
+import LoginPage from '../pages/auth/LoginPage';
 
 const Navbar = () => {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/dashboard');
-  };
+
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-4">
@@ -25,7 +23,10 @@ const Navbar = () => {
             <Link className="nav-link" to="/plan-template">Create Plan</Link>
           </li>
         </ul>
-        <button className="btn btn-outline-light" onClick={handleLogout}>Logout</button>
+
+        <button className="btn btn-outline-light">
+            <Link className="nav-link" to="/login">Login</Link>
+        </button>
       </div>
     </nav>
   );
