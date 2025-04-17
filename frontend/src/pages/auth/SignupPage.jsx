@@ -26,7 +26,7 @@ const SignupPage = () => {
         </h2>
         <div className="card position-absolute start-50 translate-middle-x mt-5">
           <div className="card-body">
-            <h3 classname="card-title text-2xl font-bold text-gray-800">
+            <h3 className="card-title text-2xl font-bold text-gray-800">
               SIGNUP
             </h3>
 

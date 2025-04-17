@@ -90,7 +90,7 @@ const Dashboard = () => {
         </div>
       </section>
 
-      <footerSection />
+
     </>
   );
 };
