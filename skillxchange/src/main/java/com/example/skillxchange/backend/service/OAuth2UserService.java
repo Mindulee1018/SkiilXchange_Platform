@@ -1,6 +1,7 @@
 package com.example.skillxchange.backend.service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -13,6 +14,7 @@ import com.example.skillxchange.backend.repository.UserRepository;
 
 @Service
 public class OAuth2UserService extends DefaultOAuth2UserService {
+
     @Autowired
     private UserRepository userRepository;
 
@@ -24,7 +26,8 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
         Optional<User> existingUser = userRepository.findByEmail(email);
         if (existingUser.isEmpty()) {
-            User newUser = new User(name, email, "");
+            String defaultPassword = UUID.randomUUID().toString(); // Generate a random password
+            User newUser = new User(name, email, defaultPassword);
             userRepository.save(newUser);
         }
 
