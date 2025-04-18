@@ -13,4 +13,12 @@ const signup = async (username, email, password) => {
   return res.data;
 };
 
-export default { login, signup };
+const isAuthenticated = () => {
+  return !!localStorage.getItem('token');
+};
+
+const logout = () => {
+  localStorage.removeItem('token');
+};
+
+export default { login, signup, isAuthenticated, logout };
