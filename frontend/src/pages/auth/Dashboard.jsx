@@ -1,6 +1,7 @@
 // src/pages/Dashboard.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import authService from '../../services/authService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const Dashboard = () => {
   const [maxWeeks, setMaxWeeks] = useState(1);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    authService.logout();
     navigate('/login');
   };
 
@@ -45,6 +46,7 @@ const Dashboard = () => {
       <header className="bg-light text-center py-5">
         <h1>Welcome to SkillXchange</h1>
         <p>Enhance your skills with our expert-guided courses</p>
+        <button className="btn btn-danger mt-3" onClick={handleLogout}>Logout</button>
       </header>
 
       <section id="courses" className="container py-5">
