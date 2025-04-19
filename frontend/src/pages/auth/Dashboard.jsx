@@ -1,14 +1,11 @@
 // src/pages/Dashboard.jsx
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../../components/common/navbar";
+import { useState } from 'react';
+import authService from '../../services/authService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
 
   return (
     <>
@@ -16,6 +13,7 @@ const Dashboard = () => {
       <header className="bg-light text-center py-5">
         <h1>Welcome to SkillXchange</h1>
         <p>Enhance your skills with our expert-guided courses</p>
+        <button className="btn btn-danger mt-3" onClick={handleLogout}>Logout</button>
       </header>
 
       <section id="courses" className="container py-5">

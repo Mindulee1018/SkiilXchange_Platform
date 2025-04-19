@@ -5,9 +5,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
 
-@Data
+
+
 @Document(collection = "users")
 public class User {
 
