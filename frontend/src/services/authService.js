@@ -21,4 +21,14 @@ const logout = () => {
   localStorage.removeItem('token');
 };
 
-export default { login, signup, isAuthenticated, logout };
+const getProfile = async () => {
+  const token = localStorage.getItem('token');
+  const res = await axios.get(`${API_BASE}/user`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
+
+export default { login, signup, isAuthenticated, logout, getProfile };

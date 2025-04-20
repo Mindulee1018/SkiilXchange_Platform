@@ -10,6 +10,7 @@ const OAuth2Success = () => {
     const token = urlParams.get('token');
 
     if (token) {
+      console.log('Storing token:', token);  // Log to verify token
       localStorage.setItem('token', token);
       navigate('/dashboard');
     } else {

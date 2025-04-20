@@ -11,6 +11,7 @@ import Dashboard from "./pages/auth/Dashboard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import OAuth2Success from "./pages/auth/OAuth2Success";
 import PlanTemplate from "./pages/auth/PlanTemplate";
+import ProfilePage from "./pages/auth/ProfilePage";
 
 function App() {
   return (
@@ -22,6 +23,14 @@ function App() {
         <Route path="/oauth2-success" element={<OAuth2Success />} />
         <Route path="/plan-template" element={<PlanTemplate />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route
+  path="/profile"
+  element={
+    <ProtectedRoute>
+      <ProfilePage />
+    </ProtectedRoute>
+  }
+/>
       </Routes>
     </Router>
   );
