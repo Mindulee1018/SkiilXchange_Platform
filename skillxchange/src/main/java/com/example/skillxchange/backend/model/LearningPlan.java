@@ -30,6 +30,8 @@ public class LearningPlan {
 
     private boolean isPublic = false; // default to private
 
+    private int learningPeriodInDays;
+
     private Date createdAt = new Date();
 
     // Getters and Setters
@@ -56,6 +58,9 @@ public class LearningPlan {
 
     public Boolean getisPublic() { return isPublic; }
     public void setisPublic(Boolean isPublic) { this.isPublic = isPublic; }
+
+    public int getLearningPeriodInDays() { return learningPeriodInDays; }
+    public void setLearningPeriodInDays(int learningPeriodInDays) { this.learningPeriodInDays = learningPeriodInDays; }
 
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }

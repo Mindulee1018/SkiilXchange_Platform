@@ -20,6 +20,9 @@ public class LearningPlanDTO {
 
     private boolean isPublic;
 
+    private int learningPeriodInDays;
+
+
     // Getters and Setters
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -38,4 +41,7 @@ public class LearningPlanDTO {
 
     public Boolean getisPublic() { return isPublic; }
     public void setisPublic(Boolean isPublic) { this.isPublic = isPublic; }
+
+    public int getLearningPeriodInDays() { return learningPeriodInDays; }
+    public void setLearningPeriodInDays(int learningPeriodInDays) { this.learningPeriodInDays = learningPeriodInDays; }
 }
