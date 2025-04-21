@@ -14,10 +14,10 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import com.example.skillxchange.backend.model.Task;
 
 @RestController
 @RequestMapping("/api")
@@ -39,6 +39,11 @@ public class LearningPlanController {
             return ResponseEntity.status(401).body("Unauthorized");
         }
 
+        int totalTaskDuration = planDto.getTasks().stream().mapToInt(Task::getDurationInDays).sum();
+        if (totalTaskDuration != planDto.getLearningPeriodInDays()) {
+            return ResponseEntity.badRequest().body("Total task duration must equal the learning period.");
+        }
+
         LearningPlan plan = new LearningPlan();
         plan.setTitle(planDto.getTitle());
         plan.setDescription(planDto.getDescription());
@@ -47,6 +52,8 @@ public class LearningPlanController {
         plan.setTasks(planDto.getTasks());
         plan.setisPublic(planDto.getisPublic());
         plan.setUserId(user.getId());
+        plan.setLearningPeriodInDays(planDto.getLearningPeriodInDays());
+
 
         learningPlanRepository.save(plan);
         return ResponseEntity.ok(plan);
@@ -63,6 +70,13 @@ public class LearningPlanController {
         }
     
         return ResponseEntity.ok(learningPlanRepository.findByUserId(user.getId()));
+    }
+
+    @GetMapping("/learning-plans/{id}")
+    public ResponseEntity<?> getPlanById(@PathVariable String id) {
+        return learningPlanRepository.findById(id)
+            .<ResponseEntity<?>>map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.status(404).body("Plan not found"));
     }
 
     @DeleteMapping("/learning-plans/{id}")
@@ -138,5 +152,27 @@ public class LearningPlanController {
         return ResponseEntity.ok(
             learningPlanRepository.findByIsPublicTrueAndTagsContainingIgnoreCase(tag)
         );
-}
+    }
+
+    @PatchMapping("/learning-plans/{planId}/tasks/{taskIndex}/complete")
+    public ResponseEntity<?> markTaskCompleted(@PathVariable String planId, @PathVariable int taskIndex) {
+        Optional<LearningPlan> planOpt = learningPlanRepository.findById(planId);
+        if (planOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("Plan not found");
+        }
+
+        LearningPlan plan = planOpt.get();
+        List<Task> tasks = plan.getTasks();
+        if (taskIndex < 0 || taskIndex >= tasks.size()) {
+            return ResponseEntity.status(400).body("Invalid task index");
+        }
+
+        Task task = tasks.get(taskIndex);
+        task.setCompleted(true);
+        task.setCompletedAt(new java.util.Date());
+        plan.setTasks(tasks);
+
+        learningPlanRepository.save(plan);
+        return ResponseEntity.ok("Task marked as completed");
+    }
 }
