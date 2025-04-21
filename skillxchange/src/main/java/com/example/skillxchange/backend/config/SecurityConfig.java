@@ -30,7 +30,7 @@ public class SecurityConfig {
         http
             .securityMatcher("/**")
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/login/oauth2/**", "/oauth2/**").permitAll()
+                .requestMatchers("/api/auth/**","/api/learning-plans/public/**","/api/learning-plans/public", "/login/oauth2/**", "/oauth2/**").permitAll()
                 .anyRequest().authenticated()
             )
             .csrf(csrf -> csrf.disable())

@@ -45,11 +45,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7); // Remove "Bearer "
         String username = jwtUtil.getUsernameFromToken(token);
+        System.out.println("Extracted username/email from token: " + username);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             Optional<User> userOpt = userRepository.findByUsername(username);
             if (userOpt.isPresent() && jwtUtil.validateToken(token)) {
                 User user = userOpt.get();
+
+                System.out.println("User present: " + userOpt.isPresent());
+                System.out.println("JWT valid: " + jwtUtil.validateToken(token));
 
                 UserDetails userDetails = org.springframework.security.core.userdetails.User
                         .withUsername(user.getUsername())
@@ -63,6 +67,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+
             }
         }
         //System.out.println("JWT filter triggered for request: " + request.getRequestURI());

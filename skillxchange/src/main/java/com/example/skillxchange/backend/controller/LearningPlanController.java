@@ -1,0 +1,142 @@
+package com.example.skillxchange.backend.controller;
+
+import com.example.skillxchange.backend.dto.LearningPlanDTO;
+import com.example.skillxchange.backend.model.LearningPlan;
+import com.example.skillxchange.backend.repository.LearningPlanRepository;
+import com.example.skillxchange.backend.repository.UserRepository;
+import com.example.skillxchange.backend.model.User;
+
+import jakarta.validation.Valid;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api")
+public class LearningPlanController {
+
+    @Autowired
+    private LearningPlanRepository learningPlanRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @PostMapping("/learning-plans")
+    public ResponseEntity<?> createLearningPlan(@RequestBody @Valid LearningPlanDTO planDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        LearningPlan plan = new LearningPlan();
+        plan.setTitle(planDto.getTitle());
+        plan.setDescription(planDto.getDescription());
+        plan.setTags(planDto.getTags());
+        plan.setSkill(planDto.getSkill());
+        plan.setTasks(planDto.getTasks());
+        plan.setisPublic(planDto.getisPublic());
+        plan.setUserId(user.getId());
+
+        learningPlanRepository.save(plan);
+        return ResponseEntity.ok(plan);
+    }
+
+    @GetMapping("/learning-plans")
+    public ResponseEntity<?> getUserLearningPlans() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+    
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+    
+        return ResponseEntity.ok(learningPlanRepository.findByUserId(user.getId()));
+    }
+
+    @DeleteMapping("/learning-plans/{id}")
+    public ResponseEntity<?> deleteLearningPlan(@PathVariable String id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        Optional<LearningPlan> planOpt = learningPlanRepository.findById(id);
+        if (planOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("Learning plan not found");
+        }
+
+        LearningPlan plan = planOpt.get();
+        if (!plan.getUserId().equals(user.getId())) {
+            return ResponseEntity.status(403).body("You are not authorized to delete this plan");
+        }
+
+        learningPlanRepository.deleteById(id);
+        return ResponseEntity.ok("Learning plan deleted successfully");
+    }
+
+    @PutMapping("/learning-plans/{id}")
+    public ResponseEntity<?> updateLearningPlan(@PathVariable String id,
+                                                @RequestBody @Valid LearningPlanDTO updatedPlan) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        Optional<LearningPlan> existingPlanOpt = learningPlanRepository.findById(id);
+        if (existingPlanOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("Learning plan not found");
+        }
+
+        LearningPlan plan = existingPlanOpt.get();
+        if (!plan.getUserId().equals(user.getId())) {
+            return ResponseEntity.status(403).body("You are not authorized to update this plan");
+        }
+
+        // Update the fields
+        plan.setTitle(updatedPlan.getTitle());
+        plan.setDescription(updatedPlan.getDescription());
+        plan.setTags(updatedPlan.getTags());
+        plan.setSkill(updatedPlan.getSkill());
+        plan.setTasks(updatedPlan.getTasks());
+        plan.setisPublic(updatedPlan.getisPublic());
+
+
+        learningPlanRepository.save(plan);
+        return ResponseEntity.ok(plan);
+    }
+
+    @GetMapping("/learning-plans/tag/{tag}")
+    public ResponseEntity<?> getPlansByTag(@PathVariable String tag) {
+        List<LearningPlan> plans = learningPlanRepository.findByTagsContainingIgnoreCase(tag);
+        return ResponseEntity.ok(plans);
+    }
+
+    @GetMapping("/learning-plans/public")
+    public ResponseEntity<?> getPublicPlans() {
+        return ResponseEntity.ok(learningPlanRepository.findByIsPublicTrue());
+    }
+    @GetMapping("/learning-plans/public/tag/{tag}")
+    public ResponseEntity<?> getPublicPlansByTag(@PathVariable String tag) {
+        return ResponseEntity.ok(
+            learningPlanRepository.findByIsPublicTrueAndTagsContainingIgnoreCase(tag)
+        );
+}
+}
