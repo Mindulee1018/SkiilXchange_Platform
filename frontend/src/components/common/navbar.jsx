@@ -31,8 +31,13 @@ const Navbar = () => {
             </Link>
           </li>
           <li className="nav-item">
-            <Link className="nav-link" to="/plan-template">
+            <Link className="nav-link" to="/plan/create">
               Create Plan
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link className="nav-link" to="/plans">
+              Created Plans
             </Link>
           </li>
         </ul>

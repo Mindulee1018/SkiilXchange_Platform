@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -174,5 +175,24 @@ public class LearningPlanController {
 
         learningPlanRepository.save(plan);
         return ResponseEntity.ok("Task marked as completed");
+    }
+
+    @PatchMapping("/learning-plans/{planId}/tasks/{taskIndex}/incomplete")
+    public ResponseEntity<?> markTaskIncomplete(@PathVariable String planId, @PathVariable int taskIndex) {
+        Optional<LearningPlan> planOpt = learningPlanRepository.findById(planId);
+        if (planOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Plan not found");
+        }
+
+        LearningPlan plan = planOpt.get();
+        if (taskIndex < 0 || taskIndex >= plan.getTasks().size()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid task index");
+        }
+
+        plan.getTasks().get(taskIndex).setCompleted(false);
+        plan.getTasks().get(taskIndex).setCompletedAt(null);
+        learningPlanRepository.save(plan);
+
+        return ResponseEntity.ok().build();
     }
 }
