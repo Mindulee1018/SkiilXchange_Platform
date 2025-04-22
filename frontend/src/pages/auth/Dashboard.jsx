@@ -17,7 +17,7 @@ const Dashboard = () => {
       </header>
 
       <section id="courses" className="container py-5">
-        <Link to="/plan-template" className="btn btn-primary">
+        <Link to="/plans/create" className="btn btn-primary">
           CREATE YOUR OWN PLAN
         </Link>
 

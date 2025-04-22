@@ -12,6 +12,9 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import OAuth2Success from "./pages/auth/OAuth2Success";
 import PlanTemplate from "./pages/auth/PlanTemplate";
 import ProfilePage from "./pages/auth/ProfilePage";
+import PlanListPage from "./pages/auth/PlanListPage";
+import PlanViewPage from './pages/auth/PlanViewPage';
+
 
 function App() {
   return (
@@ -21,16 +24,12 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/oauth2-success" element={<OAuth2Success />} />
-        <Route path="/plan-template" element={<PlanTemplate />} />
+        <Route path="/plans/create" element={<PlanTemplate />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route
-  path="/profile"
-  element={
-    <ProtectedRoute>
-      <ProfilePage />
-    </ProtectedRoute>
-  }
-/>
+        <Route path="/profile" element={<ProtectedRoute> <ProfilePage /></ProtectedRoute>}/>
+        <Route path="/plans" element={<ProtectedRoute><PlanListPage /></ProtectedRoute>} />
+        <Route path="/plans/edit/:id" element={<ProtectedRoute><PlanTemplate /></ProtectedRoute>} />
+        <Route path="/plans/view/:id" element={<ProtectedRoute><PlanViewPage /></ProtectedRoute>} />
       </Routes>
     </Router>
   );
