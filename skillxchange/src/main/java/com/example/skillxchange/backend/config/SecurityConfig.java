@@ -2,7 +2,7 @@ package com.example.skillxchange.backend.config;
 
 
 
-import com.example.skillxchange.backend.config.JwtAuthenticationFilter;
+// import com.example.skillxchange.backend.config.JwtAuthenticationFilter;
 import com.example.skillxchange.backend.service.OAuth2UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;

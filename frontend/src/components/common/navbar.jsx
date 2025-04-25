@@ -1,4 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+
+import NotificationPanel from './NotificationPanel';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -6,6 +9,12 @@ const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
+  };
+
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
   };
 
   return (
@@ -38,6 +47,11 @@ const Navbar = () => {
           <li className="nav-item">
             <Link className="nav-link" to="/plans">
               Created Plans
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link className="nav-link" to="/profile">
+              Profile
             </Link>
           </li>
         </ul>
