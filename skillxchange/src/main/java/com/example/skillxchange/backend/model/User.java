@@ -6,6 +6,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Document(collection = "users")
@@ -23,6 +25,10 @@ public class User {
 
     @NotBlank(message = "Password is required")
     private String password;
+
+    private Set<String> followingIds = new HashSet<>();
+    private Set<String> followerIds = new HashSet<>();
+    private Set<String> followedTags = new HashSet<>();
 
 
     /// Default constructor
@@ -73,5 +79,29 @@ public class User {
     // Setter for password
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Set<String> getFollowingIds() {
+        return followingIds;
+    }
+
+    public void setFollowingIds(Set<String> followingIds) {
+        this.followingIds = followingIds;
+    }
+
+    public Set<String> getFollowerIds() {
+        return followerIds;
+    }
+
+    public void setFollowerIds(Set<String> followerIds) {
+        this.followerIds = followerIds;
+    }
+
+    public Set<String> getFollowedTags() {
+        return followedTags;
+    }
+
+    public void setFollowedTags(Set<String> followedTags) {
+        this.followedTags = followedTags;
     }
 }

@@ -130,9 +130,18 @@ const PlanViewPage = () => {
 
         <p className="text-muted">Skill: {plan.skill}</p>
         <p>{plan.description}</p>
-        <div className="mb-3">
+        <div className="mb-2">
           {plan.tags?.map((tag, i) => (
-            <span key={i} className="badge bg-secondary me-1">{tag}</span>
+            <span
+            className="badge bg-secondary me-1"
+            style={{ cursor: 'pointer' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/search?tag=${encodeURIComponent(tag)}`);
+            }}
+          >
+            {tag}
+          </span>
           ))}
         </div>
         <p><strong>Learning Period:</strong> {plan.learningPeriodInDays} days</p>
