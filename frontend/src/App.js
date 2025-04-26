@@ -12,7 +12,7 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import OAuth2Success from "./pages/auth/OAuth2Success";
 import PlanTemplate from "./pages/auth/PlanTemplate";
 import ProfilePage from "./pages/auth/ProfilePage";
-import PlanListPage from "./pages/auth/PlanListPage";
+import PlanListPage from "./pages/plan/PlanListPage";
 import PlanViewPage from './pages/auth/PlanViewPage';
 
 
