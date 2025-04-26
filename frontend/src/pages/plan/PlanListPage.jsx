@@ -6,6 +6,9 @@ import Navbar from "../../components/common/navbar";
 
 const PlanListPage = () => {
   const [plans, setPlans] = useState([]);
+  const [ongoingPlans, setOngoingPlans] = useState([]);
+  const [completedPlans, setCompletedPlans] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -22,6 +25,15 @@ const PlanListPage = () => {
         if (res.ok) {
           const data = await res.json();
           setPlans(data);
+
+        // Separate ongoing and completed plans
+        const ongoing = data.filter(plan => !plan.completed);
+        setOngoingPlans(ongoing);
+
+        const completed = data.filter(plan => plan.completed);
+        setCompletedPlans(completed);
+
+
         } else {
           console.error('Failed to load plans');
         }
@@ -70,11 +82,11 @@ const PlanListPage = () => {
             </button>
         </div>
 
-        {plans.length === 0 ? (
+        {ongoingPlans.length === 0 ? (
             <p>No plans yet. Click “New Plan” to get started.</p>
         ) : (
             <div className="row">
-            {plans.map(plan => (
+            {ongoingPlans.map(plan => (
                 <div key={plan.id} className="col-md-6 mb-4">
                 <div className="card h-100 shadow-sm" onClick={() => navigate(`/plans/view/${plan.id}`)} style={{ cursor: 'pointer' }}>
                     <div className="card-body">
