@@ -4,27 +4,23 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/common/navbar';
 import WebSocketNotifications from '../../components/WebSocketNotifications';
 
-
 const PlanViewPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [plan, setPlan] = useState(null);
   const [error, setError] = useState('');
   const [started, setStarted] = useState(false);
-  
+
   const completedTasks = plan?.tasks?.filter(task => task.completed).length || 0;
   const totalTasks = plan?.tasks?.length || 0;
   const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-
 
   useEffect(() => {
     const fetchPlan = async () => {
       try {
         const token = localStorage.getItem('token');
         const res = await fetch(`http://localhost:8080/api/learning-plans/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (res.ok) {
@@ -42,7 +38,6 @@ const PlanViewPage = () => {
     fetchPlan();
   }, [id]);
 
-
   const handleStartPlan = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -50,9 +45,9 @@ const PlanViewPage = () => {
       const res = await fetch(`http://localhost:8080/api/learning-plans/${id}/start`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (res.ok) {
@@ -60,35 +55,38 @@ const PlanViewPage = () => {
 
         // Refresh plan
         const updated = await fetch(`http://localhost:8080/api/learning-plans/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
+
         if (updated.ok) {
           const data = await updated.json();
           setPlan(data);
         }
 
-        // Send WebSocket notification
+        // WebSocket notification
         if (window.socket && window.socket.readyState === WebSocket.OPEN) {
-          window.socket.send(JSON.stringify({
-            type: 'PLAN_STARTED',
-            planId: id,
-            title: plan.title,
-            message: `You have started the plan: ${plan.title}`
-          }));
+          window.socket.send(
+            JSON.stringify({
+              type: 'PLAN_STARTED',
+              planId: id,
+              title: plan.title,
+              message: `You have started the plan: ${plan.title}`,
+            })
+          );
         }
 
-        // Save to ProgressUpdate table
+        // Save to ProgressUpdate
         await fetch(`http://localhost:8080/api/ProgressUpdate`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             learningPlanId: id,
             message: `Plan "${plan.title}" has been started.`,
-            type: 'STARTED'
-          })
+            type: 'STARTED',
+          }),
         });
       } else {
         console.error('Failed to start plan');
@@ -97,22 +95,20 @@ const PlanViewPage = () => {
       console.error(err);
     }
   };
-  
+
   const handleToggleTaskCompletion = async (taskIndex) => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`http://localhost:8080/api/learning-plans/${id}/tasks/${taskIndex}/complete`, {
         method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       if (res.ok) {
-        // Re-fetch the full updated plan
         const updated = await fetch(`http://localhost:8080/api/learning-plans/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
+
         if (updated.ok) {
           const data = await updated.json();
           setPlan(data);
@@ -130,15 +126,14 @@ const PlanViewPage = () => {
       const token = localStorage.getItem('token');
       const res = await fetch(`http://localhost:8080/api/learning-plans/${id}/tasks/${taskIndex}/incomplete`, {
         method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       if (res.ok) {
         const updated = await fetch(`http://localhost:8080/api/learning-plans/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
+
         if (updated.ok) {
           const data = await updated.json();
           setPlan(data);
@@ -157,9 +152,7 @@ const PlanViewPage = () => {
       const token = localStorage.getItem('token');
       const res = await fetch(`http://localhost:8080/api/learning-plans/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -172,13 +165,8 @@ const PlanViewPage = () => {
     }
   };
 
-  if (error) {
-    return <div className="container mt-5 text-danger">{error}</div>;
-  }
-
-  if (!plan) {
-    return <div className="container mt-5">Loading...</div>;
-  }
+  if (error) return <div className="container mt-5 text-danger">{error}</div>;
+  if (!plan) return <div className="container mt-5">Loading...</div>;
 
   return (
     <>
@@ -187,39 +175,43 @@ const PlanViewPage = () => {
         <div className="d-flex justify-content-between align-items-center">
           <h2>{plan.title}</h2>
           <div>
-            <button className="btn btn-outline-primary me-2" onClick={() => navigate(`/plans/edit/${id}`)}>Edit</button>
-            <button className="btn btn-outline-danger" onClick={handleDeletePlan}>Delete</button>
+            <button className="btn btn-outline-primary me-2" onClick={() => navigate(`/plans/edit/${id}`)}>
+              Edit
+            </button>
+            <button className="btn btn-outline-danger" onClick={handleDeletePlan}>
+              Delete
+            </button>
           </div>
         </div>
 
         <p className="text-muted">Skill: {plan.skill}</p>
         <p>{plan.description}</p>
 
-
-        <div className="mb-3">
-          {plan.tags?.map((tag, i) => (
-            <span key={i} className="badge bg-secondary me-1">{tag}</span>
-
         <div className="mb-2">
           {plan.tags?.map((tag, i) => (
             <span
-            className="badge bg-secondary me-1"
-            style={{ cursor: 'pointer' }}
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/search?tag=${encodeURIComponent(tag)}`);
-            }}
-          >
-            {tag}
-          </span>
+              key={i}
+              className="badge bg-secondary me-1"
+              style={{ cursor: 'pointer' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/search?tag=${encodeURIComponent(tag)}`);
+              }}
+            >
+              {tag}
+            </span>
           ))}
         </div>
-        <p><strong>Learning Period:</strong> {plan.learningPeriodInDays} days</p>
-        <p><strong>Visibility:</strong> {plan.isPublic ? '🌐 Public' : '🔒 Private'}</p>
+
+        <p>
+          <strong>Learning Period:</strong> {plan.learningPeriodInDays} days
+        </p>
+        <p>
+          <strong>Visibility:</strong> {plan.isPublic ? '🌐 Public' : '🔒 Private'}
+        </p>
 
         <hr />
 
-        
         {!started && (
           <button className="btn btn-success my-3" onClick={handleStartPlan}>
             Start Plan
@@ -228,27 +220,22 @@ const PlanViewPage = () => {
 
         {started && (
           <>
-           <div className="progress my-3">
-            <div
-              className="progress-bar progress-bar-striped progress-bar-animated"
-              role="progressbar"
-              style={{ width: `${progressPercent}%` }}
-            >
-              {progressPercent.toFixed(0)}%
+            <div className="progress my-3">
+              <div
+                className="progress-bar progress-bar-striped progress-bar-animated"
+                role="progressbar"
+                style={{ width: `${progressPercent}%` }}
+              >
+                {progressPercent.toFixed(0)}%
+              </div>
             </div>
-          </div>
-
-          <p className="text-muted text-center">
-            {completedTasks} of {totalTasks} tasks completed
-          </p>
+            <p className="text-muted text-center">
+              {completedTasks} of {totalTasks} tasks completed
+            </p>
           </>
-
-          
         )}
 
         <hr />
-        <hr />
-
         <h4>Tasks</h4>
         {plan.tasks.length === 0 ? (
           <p>No tasks added yet.</p>
@@ -262,28 +249,32 @@ const PlanViewPage = () => {
                     type="checkbox"
                     checked={task.completed}
                     onChange={() => {
-                        if (task.completed) {
-                          handleMarkTaskIncomplete(i);
-                        } else {
-                          handleToggleTaskCompletion(i);
-                      }}}
+                      if (task.completed) {
+                        handleMarkTaskIncomplete(i);
+                      } else {
+                        handleToggleTaskCompletion(i);
+                      }
+                    }}
                   />
                   <label className="form-check-label">
-                    <strong>{task.title}</strong><br />
-                    <small>{task.description}</small><br />
+                    <strong>{task.title}</strong>
+                    <br />
+                    <small>{task.description}</small>
+                    <br />
                     <small className="text-muted">
                       Due: {task.dueDate?.slice(0, 10)} | Duration: {task.durationInDays} days
                     </small>
                   </label>
                 </div>
-                <span className={`badge ${task.completed ? 'bg-success' : 'bg-warning text-dark'}`}>{task.completed ? 'Completed' : 'Pending'}</span>
+                <span className={`badge ${task.completed ? 'bg-success' : 'bg-warning text-dark'}`}>
+                  {task.completed ? 'Completed' : 'Pending'}
+                </span>
               </li>
             ))}
           </ul>
         )}
 
         <WebSocketNotifications />
-
       </div>
     </>
   );

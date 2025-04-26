@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 import NotificationPanel from './NotificationPanel';
 
 

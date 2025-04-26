@@ -1,10 +1,11 @@
-
 // pages/auth/ProfilePage.jsx
 import React, { useEffect, useState } from 'react';
 import { Modal, Button } from 'react-bootstrap';
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
 import useProfile from '../../hooks/useProfile';
+import NotificationPanel from '../../components/common/NotificationPanel';
 import Navbar from '../../components/common/navbar';
+import { BsBellFill } from 'react-icons/bs';
 
 const ProfilePage = () => {
   const { profile, loading, error } = useProfile();
@@ -13,6 +14,11 @@ const ProfilePage = () => {
   const [showFollowing, setShowFollowing] = useState(false);
   const [followersList, setFollowersList] = useState([]);
   const [followingList, setFollowingList] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const toggleNotifications = () => {
+    setShowNotifications(prev => !prev);
+  };
 
   useEffect(() => {
     const fetchPublicPlans = async () => {
@@ -62,58 +68,46 @@ const ProfilePage = () => {
   if (loading) return <div className="container mt-5">Loading profile...</div>;
   if (error) return <div className="container mt-5">{error}</div>;
 
-
-import React, { useState } from 'react';
-import useProfile from '../../hooks/useProfile';
-import NotificationPanel from '../../components/common/NotificationPanel';
-import Navbar from '../../components/common/navbar';
-
-import { BsBellFill } from "react-icons/bs";
-
-const ProfilePage = () => {
-  const { profile, loading, error } = useProfile();
-  const [showNotifications, setShowNotifications] = useState(false);
-
-  const toggleNotifications = () => {
-    setShowNotifications(prev => !prev);
-  };
-
-// pages/ProfilePage.jsx
-import React from 'react';
-import useProfile from '../../hooks/useProfile';
-
-const ProfilePage = () => {
-  const { profile, loading, error } = useProfile();
-
-  if (loading) return <p>Loading profile...</p>;
-  if (error) return <p>{error}</p>;
-
-
   return (
     <>
       <Navbar />
 
       <div className="container mt-5">
-        <div className="text-center mb-4">
-          <img
-            src={profile.profilePicture || "https://via.placeholder.com/100"}
-            alt="Profile"
-            className="rounded-circle"
-            style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-          />
-          <h2 className="mt-3">{profile.username}</h2>
-          <p className="text-muted">{profile.description || 'No description provided.'}</p>
-          {/*<p className="text-muted">{profile.email}</p>*/}
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-center">
+            <img
+              src={profile.profilePicture || 'https://via.placeholder.com/100'}
+              alt="Profile"
+              className="rounded-circle"
+              style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+            />
+            <h2 className="mt-3">{profile.username}</h2>
+            <p className="text-muted">{profile.description || 'No description provided.'}</p>
+          </div>
 
-          <div className="d-flex justify-content-center gap-3 mt-2">
-            <Button variant="outline-primary" size="sm" onClick={() => setShowFollowers(true)}>
-              Followers ({profile.followers})
-            </Button>
-            <Button variant="outline-secondary" size="sm" onClick={() => setShowFollowing(true)}>
-              Following ({profile.following})
-            </Button>
+          <div>
+            <button onClick={toggleNotifications} className="btn btn-outline-warning">
+              <BsBellFill />
+            </button>
+
+            {showNotifications && (
+              <div className="position-absolute end-0 mt-2 z-3 bg-white shadow-lg rounded-lg w-100" style={{ maxWidth: '300px' }}>
+                <NotificationPanel />
+              </div>
+            )}
           </div>
         </div>
+
+        <div className="d-flex justify-content-center gap-3 mt-2">
+          <Button variant="outline-primary" size="sm" onClick={() => setShowFollowers(true)}>
+            Followers ({profile.followers})
+          </Button>
+          <Button variant="outline-secondary" size="sm" onClick={() => setShowFollowing(true)}>
+            Following ({profile.following})
+          </Button>
+        </div>
+
+        <hr />
 
         <h4 className="mb-3">Your Public Learning Plans</h4>
         {publicPlans.length === 0 ? (
@@ -138,94 +132,53 @@ const ProfilePage = () => {
             ))}
           </div>
         )}
-      </div>
 
-      {/* Followers Modal */}
-      <Modal show={showFollowers} onHide={() => setShowFollowers(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Followers</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {followersList.length === 0 ? (
-            <p>No followers yet.</p>
-          ) : (
-            <ul className="list-group">
-              {followersList.map((follower, index) => (
+        {/* Followers Modal */}
+        <Modal show={showFollowers} onHide={() => setShowFollowers(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Followers</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {followersList.length === 0 ? (
+              <p>No followers yet.</p>
+            ) : (
+              <ul className="list-group">
+                {followersList.map((follower, index) => (
                   <li key={index} className="list-group-item">
-                  <Link to={`/user/${follower.id}`} className="text-decoration-none">
-                    {follower.username}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Modal.Body>
-      </Modal>
-
-      {/* Following Modal */}
-      <Modal show={showFollowing} onHide={() => setShowFollowing(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Following</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {followingList.length === 0 ? (
-            <p>Not following anyone yet.</p>
-          ) : (
-            <ul className="list-group">
-              {followingList.map((user, index) => (
-                <li key={index} className="list-group-item">
-                <Link to={`/user/${user.id}`} className="text-decoration-none">
-                  {user.username}
-                </Link>
-              </li>
-              ))}
-            </ul>
-          )}
-        </Modal.Body>
-      </Modal>
-    </>
-  );
-};
-
-export default ProfilePage;
-
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">User Profile</h2>
-
-          <div>
-            <button onClick={toggleNotifications} className="btn btn-outline-warning" >
-              <BsBellFill  />
-            </button>
-
-            {showNotifications && (
-              <div className="absolute right-0 mt-2 z-50 bg-white shadow-lg rounded-lg w-72">
-                <NotificationPanel />
-              </div>
+                    <Link to={`/user/${follower.id}`} className="text-decoration-none">
+                      {follower.username}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             )}
-          </div>
-        </div>
+          </Modal.Body>
+        </Modal>
 
-        <div className="mb-6">
-          <p><strong>ID:</strong> {profile.id}</p>
-          <p><strong>Username:</strong> {profile.username}</p>
-          <p><strong>Email:</strong> {profile.email}</p>
-        </div>
+        {/* Following Modal */}
+        <Modal show={showFollowing} onHide={() => setShowFollowing(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Following</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {followingList.length === 0 ? (
+              <p>Not following anyone yet.</p>
+            ) : (
+              <ul className="list-group">
+                {followingList.map((user, index) => (
+                  <li key={index} className="list-group-item">
+                    <Link to={`/user/${user.id}`} className="text-decoration-none">
+                      {user.username}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Modal.Body>
+        </Modal>
       </div>
     </>
   );
 };
 
 export default ProfilePage;
-
-    <div>
-      <h2>User Profile</h2>
-      <p><strong>ID:</strong> {profile.id}</p>
-      <p><strong>Username:</strong> {profile.username}</p>
-      <p><strong>Email:</strong> {profile.email}</p>
-    </div>
-  );
-};
-
-export default ProfilePage;
-
