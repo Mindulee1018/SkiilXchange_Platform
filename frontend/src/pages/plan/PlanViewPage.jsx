@@ -11,6 +11,11 @@ const PlanViewPage = () => {
   const [error, setError] = useState('');
   const [started, setStarted] = useState(false);
 
+  const completedTasks = plan.tasks.filter(task => task.completed).length;
+  const totalTasks = plan.tasks.length;
+  const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+
   useEffect(() => {
     const fetchPlan = async () => {
       try {
@@ -203,7 +208,8 @@ const PlanViewPage = () => {
         )}
 
         {started && (
-          <div className="progress my-3">
+          <>
+           <div className="progress my-3">
             <div
               className="progress-bar progress-bar-striped progress-bar-animated"
               role="progressbar"
@@ -212,7 +218,15 @@ const PlanViewPage = () => {
               {progressPercent.toFixed(0)}%
             </div>
           </div>
+
+          <p className="text-muted text-center">
+            {completedTasks} of {totalTasks} tasks completed
+          </p>
+          </>
+
+          
         )}
+
         <hr />
 
         <h4>Tasks</h4>

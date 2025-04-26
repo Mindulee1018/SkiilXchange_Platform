@@ -37,4 +37,18 @@ public class progressUpdateController {
         List<ProgressUpdate> updates = progressUpdateRepository.findByUserIdOrderByTimestampDesc(user.getId());
         return ResponseEntity.ok(updates);
     }
+
+    @PostMapping("/ProgressUpdate")
+    public ResponseEntity<?> ProgressUpdatesForCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        List<ProgressUpdate> updates = progressUpdateRepository.findByUserIdOrderByTimestampDesc(user.getId());
+        return ResponseEntity.ok(updates);
+    }
 }
