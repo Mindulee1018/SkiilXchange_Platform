@@ -30,6 +30,9 @@ public class User {
     private Set<String> followerIds = new HashSet<>();
     private Set<String> followedTags = new HashSet<>();
 
+    private String profilePicture; 
+    private String description;
+
 
     /// Default constructor
     public User() {}
@@ -103,5 +106,25 @@ public class User {
 
     public void setFollowedTags(Set<String> followedTags) {
         this.followedTags = followedTags;
+    }
+
+    // Getter for password
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    // Setter for password
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
+
+    // Getter for password
+    public String getDescription() {
+        return description;
+    }
+
+    // Setter for password
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
