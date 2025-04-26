@@ -10,9 +10,8 @@ const PlanViewPage = () => {
   const navigate = useNavigate();
   const [plan, setPlan] = useState(null);
   const [error, setError] = useState('');
-
   const [started, setStarted] = useState(false);
-
+  
   const completedTasks = plan?.tasks?.filter(task => task.completed).length || 0;
   const totalTasks = plan?.tasks?.length || 0;
   const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -42,6 +41,7 @@ const PlanViewPage = () => {
 
     fetchPlan();
   }, [id]);
+
 
   const handleStartPlan = async () => {
     try {
@@ -97,6 +97,7 @@ const PlanViewPage = () => {
       console.error(err);
     }
   };
+  
   const handleToggleTaskCompletion = async (taskIndex) => {
     try {
       const token = localStorage.getItem('token');
@@ -194,9 +195,11 @@ const PlanViewPage = () => {
         <p className="text-muted">Skill: {plan.skill}</p>
         <p>{plan.description}</p>
 
+
         <div className="mb-3">
           {plan.tags?.map((tag, i) => (
             <span key={i} className="badge bg-secondary me-1">{tag}</span>
+
         <div className="mb-2">
           {plan.tags?.map((tag, i) => (
             <span
@@ -209,11 +212,13 @@ const PlanViewPage = () => {
           >
             {tag}
           </span>
-
           ))}
         </div>
         <p><strong>Learning Period:</strong> {plan.learningPeriodInDays} days</p>
         <p><strong>Visibility:</strong> {plan.isPublic ? '🌐 Public' : '🔒 Private'}</p>
+
+        <hr />
+
         
         {!started && (
           <button className="btn btn-success my-3" onClick={handleStartPlan}>
@@ -276,6 +281,7 @@ const PlanViewPage = () => {
             ))}
           </ul>
         )}
+
         <WebSocketNotifications />
 
       </div>

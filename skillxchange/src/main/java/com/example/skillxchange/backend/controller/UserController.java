@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -71,7 +72,35 @@ public class UserController {
         }
 
         User user = userOpt.get();
-        UserProfileDTO profile = new UserProfileDTO(user.getId(), user.getUsername(), user.getEmail());
+        UserProfileDTO profile = new UserProfileDTO();
+        profile.setId(user.getId());
+        profile.setUsername(user.getUsername());
+        profile.setEmail(user.getEmail());
+        profile.setProfilePicture(user.getProfilePicture());
+        profile.setDescription(user.getDescription());
+        profile.setFollowers(user.getFollowerIds().size());
+        profile.setFollowing(user.getFollowingIds().size());
+        return ResponseEntity.ok(profile);
+    }
+
+    // Get a specific user by ID (for viewing other people's profiles)
+    @GetMapping("/users/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable String id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        User user = userOpt.get();
+        UserProfileDTO profile = new UserProfileDTO();
+        profile.setId(user.getId());
+        profile.setUsername(user.getUsername());
+        profile.setEmail(user.getEmail());
+        profile.setProfilePicture(user.getProfilePicture());
+        profile.setDescription(user.getDescription());
+        profile.setFollowers(user.getFollowerIds().size());
+        profile.setFollowing(user.getFollowingIds().size());
+
         return ResponseEntity.ok(profile);
     }
 }

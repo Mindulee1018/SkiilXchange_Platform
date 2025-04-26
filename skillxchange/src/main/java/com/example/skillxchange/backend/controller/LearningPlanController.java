@@ -21,7 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.skillxchange.backend.model.Task;
@@ -35,6 +37,9 @@ public class LearningPlanController {
 
     @Autowired
     private UserRepository userRepository;
+
+    //create plan
+
 
     @Autowired
     private NotificationPublisher notificationPublisher;
@@ -51,6 +56,7 @@ public class LearningPlanController {
         return update;
     }
     
+
     @PostMapping("/learning-plans")
     public ResponseEntity<?> createLearningPlan(@RequestBody @Valid LearningPlanDTO planDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -83,7 +89,7 @@ public class LearningPlanController {
 
         return ResponseEntity.ok(plan);
     }
-
+    //get all plans
     @GetMapping("/learning-plans")
     public ResponseEntity<?> getUserLearningPlans() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -96,14 +102,14 @@ public class LearningPlanController {
 
         return ResponseEntity.ok(learningPlanRepository.findByUserId(user.getId()));
     }
-
+    //get plan by id
     @GetMapping("/learning-plans/{id}")
     public ResponseEntity<?> getPlanById(@PathVariable String id) {
         return learningPlanRepository.findById(id)
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).body("Plan not found"));
     }
-
+    //delete learning plan
     @DeleteMapping("/learning-plans/{id}")
     public ResponseEntity<?> deleteLearningPlan(@PathVariable String id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -131,7 +137,7 @@ public class LearningPlanController {
 
         return ResponseEntity.ok("Learning plan deleted successfully");
     }
-
+    //update learning plan
     @PutMapping("/learning-plans/{id}")
     public ResponseEntity<?> updateLearningPlan(@PathVariable String id, @RequestBody @Valid LearningPlanDTO updatedPlan) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -166,7 +172,7 @@ public class LearningPlanController {
 
         return ResponseEntity.ok(plan);
     }
-
+    //get plans by tag
     @GetMapping("/learning-plans/tag/{tag}")
     public ResponseEntity<?> getPlansByTag(@PathVariable String tag) {
         List<LearningPlan> plans = learningPlanRepository.findByTagsContainingIgnoreCase(tag);
@@ -225,10 +231,26 @@ public class LearningPlanController {
 
         return ResponseEntity.ok().build();
     }
+
+    //returning public plans by the user
+    @GetMapping("/learning-plans/user/public")
+    public ResponseEntity<?> getMyPublicPlans(@AuthenticationPrincipal UserDetails userDetails) {
+        Optional<User> userOpt = userRepository.findByUsername(userDetails.getUsername());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+
+        String userId = userOpt.get().getId();
+        List<LearningPlan> publicPlans = learningPlanRepository.findByUserIdAndIsPublicTrue(userId);
+        return ResponseEntity.ok(publicPlans);
+    }
+    
+
     @PostMapping("/learning-plans/{id}/start")
     public ResponseEntity<Void> startPlan(@PathVariable String id, Principal principal) {
         learningPlanService.startPlan(id, principal.getName());
         return ResponseEntity.ok().build();
     }
+
 
 }

@@ -15,6 +15,7 @@ import ProfilePage from "./pages/profile/ProfilePage";
 import PlanListPage from "./pages/plan/PlanListPage";
 import PlanViewPage from './pages/plan/PlanViewPage';
 import SearchPage from "./pages/common/SearchPage";
+import UserProfilePage from "./pages/profile/UserProfilePage";
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
         <Route path="/plans/edit/:id" element={<ProtectedRoute><PlanTemplate /></ProtectedRoute>} />
         <Route path="/plans/view/:id" element={<ProtectedRoute><PlanViewPage /></ProtectedRoute>} />
         <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+        <Route path="/user/:id" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

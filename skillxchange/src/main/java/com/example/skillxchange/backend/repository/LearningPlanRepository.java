@@ -10,4 +10,5 @@ public interface LearningPlanRepository extends MongoRepository<LearningPlan, St
     List<LearningPlan> findByTagsContainingIgnoreCase(String tag);
     List<LearningPlan> findByIsPublicTrue();
     List<LearningPlan> findByIsPublicTrueAndTagsContainingIgnoreCase(String tag);
+    List<LearningPlan> findByUserIdAndIsPublicTrue(String userId);
 }
