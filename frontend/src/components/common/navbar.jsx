@@ -1,5 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import React, { useState } from 'react';
+import NotificationPanel from './NotificationPanel';
+
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -34,6 +37,13 @@ const Navbar = () => {
     fetchProfile();
   }, []);
 
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+  };
+
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-4">
       <Link className="navbar-brand" to="/dashboard">
@@ -64,6 +74,11 @@ const Navbar = () => {
           <li className="nav-item">
             <Link className="nav-link" to="/plans">
               Created Plans
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link className="nav-link" to="/profile">
+              Profile
             </Link>
           </li>
         </ul>

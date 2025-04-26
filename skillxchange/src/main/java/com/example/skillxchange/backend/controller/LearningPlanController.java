@@ -2,12 +2,18 @@ package com.example.skillxchange.backend.controller;
 
 import com.example.skillxchange.backend.dto.LearningPlanDTO;
 import com.example.skillxchange.backend.model.LearningPlan;
+import com.example.skillxchange.backend.model.ProgressUpdate;
 import com.example.skillxchange.backend.repository.LearningPlanRepository;
+import com.example.skillxchange.backend.repository.ProgressUpdateRepository;
 import com.example.skillxchange.backend.repository.UserRepository;
 import com.example.skillxchange.backend.model.User;
+import com.example.skillxchange.backend.service.LearningPlanService;
+import com.example.skillxchange.backend.service.NotificationPublisher;
+//import com.example.skillxchange.backend.service.NotificationService;
 
 import jakarta.validation.Valid;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +37,26 @@ public class LearningPlanController {
 
     @Autowired
     private UserRepository userRepository;
+
     //create plan
+
+
+    @Autowired
+    private NotificationPublisher notificationPublisher;
+
+    @Autowired
+    private ProgressUpdateRepository progressUpdateRepository;
+
+    @Autowired
+    private LearningPlanService learningPlanService;
+
+    private ProgressUpdate saveProgressUpdate(String userId, String planId, String type, String message) {
+        ProgressUpdate update = new ProgressUpdate(userId, planId, type, message);
+        progressUpdateRepository.save(update);
+        return update;
+    }
+    
+
     @PostMapping("/learning-plans")
     public ResponseEntity<?> createLearningPlan(@RequestBody @Valid LearningPlanDTO planDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -57,8 +82,11 @@ public class LearningPlanController {
         plan.setUserId(user.getId());
         plan.setLearningPeriodInDays(planDto.getLearningPeriodInDays());
 
-
         learningPlanRepository.save(plan);
+
+        ProgressUpdate update = saveProgressUpdate(user.getId(), plan.getId(), "CREATE", "Created plan: " + plan.getTitle());
+        notificationPublisher.sendPlanNotification(update);
+
         return ResponseEntity.ok(plan);
     }
     //get all plans
@@ -66,20 +94,20 @@ public class LearningPlanController {
     public ResponseEntity<?> getUserLearningPlans() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-    
+
         User user = userRepository.findByUsername(username).orElse(null);
         if (user == null) {
             return ResponseEntity.status(401).body("Unauthorized");
         }
-    
+
         return ResponseEntity.ok(learningPlanRepository.findByUserId(user.getId()));
     }
     //get plan by id
     @GetMapping("/learning-plans/{id}")
     public ResponseEntity<?> getPlanById(@PathVariable String id) {
         return learningPlanRepository.findById(id)
-            .<ResponseEntity<?>>map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.status(404).body("Plan not found"));
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(404).body("Plan not found"));
     }
     //delete learning plan
     @DeleteMapping("/learning-plans/{id}")
@@ -103,12 +131,15 @@ public class LearningPlanController {
         }
 
         learningPlanRepository.deleteById(id);
+
+        ProgressUpdate update = saveProgressUpdate(user.getId(), plan.getId(), "DELETE", "Deleted plan: " + plan.getTitle());
+        notificationPublisher.sendPlanNotification(update);
+
         return ResponseEntity.ok("Learning plan deleted successfully");
     }
     //update learning plan
     @PutMapping("/learning-plans/{id}")
-    public ResponseEntity<?> updateLearningPlan(@PathVariable String id,
-                                                @RequestBody @Valid LearningPlanDTO updatedPlan) {
+    public ResponseEntity<?> updateLearningPlan(@PathVariable String id, @RequestBody @Valid LearningPlanDTO updatedPlan) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
@@ -127,7 +158,6 @@ public class LearningPlanController {
             return ResponseEntity.status(403).body("You are not authorized to update this plan");
         }
 
-        // Update the fields
         plan.setTitle(updatedPlan.getTitle());
         plan.setDescription(updatedPlan.getDescription());
         plan.setTags(updatedPlan.getTags());
@@ -135,8 +165,11 @@ public class LearningPlanController {
         plan.setTasks(updatedPlan.getTasks());
         plan.setisPublic(updatedPlan.getisPublic());
 
-
         learningPlanRepository.save(plan);
+
+        ProgressUpdate update = saveProgressUpdate(user.getId(), plan.getId(), "UPDATE", "Updated plan: " + plan.getTitle());
+        notificationPublisher.sendPlanNotification(update);
+
         return ResponseEntity.ok(plan);
     }
     //get plans by tag
@@ -151,11 +184,11 @@ public class LearningPlanController {
         return ResponseEntity.ok(learningPlanRepository.findByIsPublicTrue());
     }
     //get public plans using a certain tag
+
     @GetMapping("/learning-plans/public/tag/{tag}")
     public ResponseEntity<?> getPublicPlansByTag(@PathVariable String tag) {
         return ResponseEntity.ok(
-            learningPlanRepository.findByIsPublicTrueAndTagsContainingIgnoreCase(tag)
-        );
+                learningPlanRepository.findByIsPublicTrueAndTagsContainingIgnoreCase(tag));
     }
     //mark task as complete
     @PatchMapping("/learning-plans/{planId}/tasks/{taskIndex}/complete")
@@ -198,6 +231,7 @@ public class LearningPlanController {
 
         return ResponseEntity.ok().build();
     }
+
     //returning public plans by the user
     @GetMapping("/learning-plans/user/public")
     public ResponseEntity<?> getMyPublicPlans(@AuthenticationPrincipal UserDetails userDetails) {
@@ -211,4 +245,12 @@ public class LearningPlanController {
         return ResponseEntity.ok(publicPlans);
     }
     
+
+    @PostMapping("/learning-plans/{id}/start")
+    public ResponseEntity<Void> startPlan(@PathVariable String id, Principal principal) {
+        learningPlanService.startPlan(id, principal.getName());
+        return ResponseEntity.ok().build();
+    }
+
+
 }

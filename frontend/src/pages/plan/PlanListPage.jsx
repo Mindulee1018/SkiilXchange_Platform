@@ -82,6 +82,10 @@ const PlanListPage = () => {
                     <h6 className="card-subtitle mb-2 text-muted">{plan.skill}</h6>
                     <p className="card-text">{plan.description}</p>
                     <div className="mb-2">
+                        {plan.tags?.map((tag, i) => (
+                        <span key={i} className="badge bg-secondary me-1">{tag}</span>
+                        ))}
+                    </div>
                     {plan.tags?.map((tag, i) => (
                       <span
                       className="badge bg-secondary me-1"
