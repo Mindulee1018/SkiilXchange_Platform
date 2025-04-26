@@ -86,6 +86,19 @@ const PlanListPage = () => {
                         <span key={i} className="badge bg-secondary me-1">{tag}</span>
                         ))}
                     </div>
+                    {plan.tags?.map((tag, i) => (
+                      <span
+                      className="badge bg-secondary me-1"
+                      style={{ cursor: 'pointer' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/search?tag=${encodeURIComponent(tag)}`);
+                      }}
+                    >
+                      {tag}
+                    </span>
+                    ))}
+                  </div>
                     <div className="text-muted small">
                         {plan.isPublic ? '🌐 Public' : '🔒 Private'} • Created: {new Date(plan.createdAt).toLocaleDateString()}
                     </div>

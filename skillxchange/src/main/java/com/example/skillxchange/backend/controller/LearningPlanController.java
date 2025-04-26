@@ -172,18 +172,19 @@ public class LearningPlanController {
         List<LearningPlan> plans = learningPlanRepository.findByTagsContainingIgnoreCase(tag);
         return ResponseEntity.ok(plans);
     }
-
+    //get all public plans
     @GetMapping("/learning-plans/public")
     public ResponseEntity<?> getPublicPlans() {
         return ResponseEntity.ok(learningPlanRepository.findByIsPublicTrue());
     }
+    //get public plans using a certain tag
 
     @GetMapping("/learning-plans/public/tag/{tag}")
     public ResponseEntity<?> getPublicPlansByTag(@PathVariable String tag) {
         return ResponseEntity.ok(
                 learningPlanRepository.findByIsPublicTrueAndTagsContainingIgnoreCase(tag));
     }
-
+    //mark task as complete
     @PatchMapping("/learning-plans/{planId}/tasks/{taskIndex}/complete")
     public ResponseEntity<?> markTaskCompleted(@PathVariable String planId, @PathVariable int taskIndex) {
         Optional<LearningPlan> planOpt = learningPlanRepository.findById(planId);
@@ -205,7 +206,7 @@ public class LearningPlanController {
         learningPlanRepository.save(plan);
         return ResponseEntity.ok("Task marked as completed");
     }
-
+    //mark the task as incomplete
     @PatchMapping("/learning-plans/{planId}/tasks/{taskIndex}/incomplete")
     public ResponseEntity<?> markTaskIncomplete(@PathVariable String planId, @PathVariable int taskIndex) {
         Optional<LearningPlan> planOpt = learningPlanRepository.findById(planId);
@@ -224,12 +225,10 @@ public class LearningPlanController {
 
         return ResponseEntity.ok().build();
     }
-
     @PostMapping("/learning-plans/{id}/start")
     public ResponseEntity<Void> startPlan(@PathVariable String id, Principal principal) {
         learningPlanService.startPlan(id, principal.getName());
         return ResponseEntity.ok().build();
     }
-
 
 }

@@ -4,17 +4,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/common/navbar';
 import WebSocketNotifications from '../../components/WebSocketNotifications';
 
+
 const PlanViewPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [plan, setPlan] = useState(null);
   const [error, setError] = useState('');
+
   const [started, setStarted] = useState(false);
 
   const completedTasks = plan?.tasks?.filter(task => task.completed).length || 0;
   const totalTasks = plan?.tasks?.length || 0;
   const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-  
+
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -95,7 +97,6 @@ const PlanViewPage = () => {
       console.error(err);
     }
   };
-
   const handleToggleTaskCompletion = async (taskIndex) => {
     try {
       const token = localStorage.getItem('token');
@@ -149,7 +150,6 @@ const PlanViewPage = () => {
     }
   };
 
-
   const handleDeletePlan = async () => {
     if (!window.confirm('Are you sure you want to delete this plan?')) return;
     try {
@@ -193,9 +193,23 @@ const PlanViewPage = () => {
 
         <p className="text-muted">Skill: {plan.skill}</p>
         <p>{plan.description}</p>
+
         <div className="mb-3">
           {plan.tags?.map((tag, i) => (
             <span key={i} className="badge bg-secondary me-1">{tag}</span>
+        <div className="mb-2">
+          {plan.tags?.map((tag, i) => (
+            <span
+            className="badge bg-secondary me-1"
+            style={{ cursor: 'pointer' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/search?tag=${encodeURIComponent(tag)}`);
+            }}
+          >
+            {tag}
+          </span>
+
           ))}
         </div>
         <p><strong>Learning Period:</strong> {plan.learningPeriodInDays} days</p>
@@ -227,6 +241,7 @@ const PlanViewPage = () => {
           
         )}
 
+        <hr />
         <hr />
 
         <h4>Tasks</h4>
@@ -262,6 +277,7 @@ const PlanViewPage = () => {
           </ul>
         )}
         <WebSocketNotifications />
+
       </div>
     </>
   );
