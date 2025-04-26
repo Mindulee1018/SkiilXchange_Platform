@@ -11,10 +11,10 @@ const PlanViewPage = () => {
   const [error, setError] = useState('');
   const [started, setStarted] = useState(false);
 
-  const completedTasks = plan.tasks.filter(task => task.completed).length;
-  const totalTasks = plan.tasks.length;
+  const completedTasks = plan?.tasks?.filter(task => task.completed).length || 0;
+  const totalTasks = plan?.tasks?.length || 0;
   const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-
+  
 
   useEffect(() => {
     const fetchPlan = async () => {
