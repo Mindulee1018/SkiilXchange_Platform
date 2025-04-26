@@ -7,14 +7,13 @@ import com.example.skillxchange.backend.repository.LearningPlanRepository;
 import com.example.skillxchange.backend.repository.ProgressUpdateRepository;
 import com.example.skillxchange.backend.repository.UserRepository;
 import com.example.skillxchange.backend.model.User;
-
-import org.springframework.context.ApplicationEventPublisher;
-import com.example.skillxchange.backend.event.ProgressUpdateEvent;
+import com.example.skillxchange.backend.service.LearningPlanService;
 import com.example.skillxchange.backend.service.NotificationPublisher;
-import com.example.skillxchange.backend.service.NotificationService;
+//import com.example.skillxchange.backend.service.NotificationService;
 
 import jakarta.validation.Valid;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,6 +41,9 @@ public class LearningPlanController {
 
     @Autowired
     private ProgressUpdateRepository progressUpdateRepository;
+
+    @Autowired
+    private LearningPlanService learningPlanService;
 
     private ProgressUpdate saveProgressUpdate(String userId, String planId, String type, String message) {
         ProgressUpdate update = new ProgressUpdate(userId, planId, type, message);
@@ -222,4 +224,12 @@ public class LearningPlanController {
 
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/learning-plans/{id}/start")
+    public ResponseEntity<Void> startPlan(@PathVariable String id, Principal principal) {
+        learningPlanService.startPlan(id, principal.getName());
+        return ResponseEntity.ok().build();
+    }
+
+
 }

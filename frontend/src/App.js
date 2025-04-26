@@ -10,10 +10,10 @@ import SignupPage from "./pages/auth/SignupPage";
 import Dashboard from "./pages/auth/Dashboard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import OAuth2Success from "./pages/auth/OAuth2Success";
-import PlanTemplate from "./pages/auth/PlanTemplate";
-import ProfilePage from "./pages/auth/ProfilePage";
+import PlanTemplate from "./pages/plan/PlanTemplate";
+import ProfilePage from "./pages/profile/ProfilePage";
 import PlanListPage from "./pages/plan/PlanListPage";
-import PlanViewPage from './pages/auth/PlanViewPage';
+import PlanViewPage from './pages/plan/PlanViewPage';
 
 
 function App() {

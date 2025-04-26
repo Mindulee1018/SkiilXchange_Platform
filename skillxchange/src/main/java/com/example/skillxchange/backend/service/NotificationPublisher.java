@@ -1,6 +1,6 @@
 package com.example.skillxchange.backend.service;
 
-import com.example.skillxchange.backend.dto.NotificationMessageDTO;
+//import com.example.skillxchange.backend.dto.NotificationMessageDTO;
 import com.example.skillxchange.backend.model.ProgressUpdate;
 
 import org.springframework.beans.factory.annotation.Autowired;
