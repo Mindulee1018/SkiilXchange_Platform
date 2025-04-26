@@ -30,6 +30,8 @@ public class LearningPlan {
 
     private boolean isPublic = false; // default to private
 
+    private boolean completed = false;
+
     private int learningPeriodInDays;
 
     private Date createdAt = new Date();
@@ -59,6 +61,9 @@ public class LearningPlan {
     public Boolean getisPublic() { return isPublic; }
     public void setisPublic(Boolean isPublic) { this.isPublic = isPublic; }
 
+    public boolean isCompleted() {return completed;}
+    public void setCompleted(boolean completed) {this.completed = completed;}
+    
     public int getLearningPeriodInDays() { return learningPeriodInDays; }
     public void setLearningPeriodInDays(int learningPeriodInDays) { this.learningPeriodInDays = learningPeriodInDays; }
 
