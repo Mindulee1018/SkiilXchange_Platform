@@ -209,8 +209,14 @@ public class LearningPlanController {
         task.setCompletedAt(new java.util.Date());
         plan.setTasks(tasks);
 
+        // Check if all tasks are completed
+        boolean allCompleted = tasks.stream().allMatch(Task::isCompleted);
+        plan.setCompleted(allCompleted);
+
+        plan.setTasks(tasks);
+
         learningPlanRepository.save(plan);
-        return ResponseEntity.ok("Task marked as completed");
+        return ResponseEntity.ok("Task marked as completed" + (allCompleted ? ". Plan completed!" : ""));
     }
     //mark the task as incomplete
     @PatchMapping("/learning-plans/{planId}/tasks/{taskIndex}/incomplete")
@@ -246,10 +252,33 @@ public class LearningPlanController {
     }
     
 
+    // Start Plan
     @PostMapping("/learning-plans/{id}/start")
-    public ResponseEntity<Void> startPlan(@PathVariable String id, Principal principal) {
-        learningPlanService.startPlan(id, principal.getName());
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> startPlan(@PathVariable String id, Principal principal) {
+        Optional<User> userOpt = userRepository.findByUsername(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+
+        User user = userOpt.get();
+        Optional<LearningPlan> planOpt = learningPlanRepository.findById(id);
+        if (planOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Learning plan not found");
+        }
+
+        LearningPlan plan = planOpt.get();
+        if (!plan.getUserId().equals(user.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to start this plan");
+        }
+
+        // Start the plan
+        plan.setStarted(true);
+        learningPlanRepository.save(plan);
+
+        ProgressUpdate update = saveProgressUpdate(user.getId(), plan.getId(), "START", "Started plan: " + plan.getTitle());
+        notificationPublisher.sendPlanNotification(update);
+
+        return ResponseEntity.ok("Plan started successfully");
     }
 
 
