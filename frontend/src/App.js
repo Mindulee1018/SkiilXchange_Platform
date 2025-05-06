@@ -16,6 +16,7 @@ import PlanListPage from "./pages/plan/PlanListPage";
 import PlanViewPage from './pages/plan/PlanViewPage';
 import SearchPage from "./pages/common/SearchPage";
 import UserProfilePage from "./pages/profile/UserProfilePage";
+import CommentCard from "./pages/comment/CommentCard";
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
         <Route path="/plans/view/:id" element={<ProtectedRoute><PlanViewPage /></ProtectedRoute>} />
         <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
         <Route path="/user/:id" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+        <Route path="/comment/:id" element={<ProtectedRoute><CommentCard /></ProtectedRoute>} />
       </Routes>
     </Router>
   );
