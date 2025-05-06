@@ -1,135 +1,138 @@
-import React, { useEffect, useState } from "react";
-import { Modal, Form, Input, Button, Upload } from "antd";
+import React, { useState } from "react";
+import { Modal, Form, Input, Button, Upload, message } from "antd";
 import { useSnapshot } from "valtio";
 import state from "../../Utils/Store";
 import PostService from "../../Services/PostService";
 import UploadFileService from "../../Services/UploadFileService";
 import { UploadOutlined } from "@ant-design/icons";
+
 const uploader = new UploadFileService();
-const UploadPostModal = () => {
+
+const SkillPostUploader = () => {
   const snap = useSnapshot(state);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
-  const selectedPost = snap.selectedPost;
-  const [fileType, setFileType] = useState("image");
-  const [image, setImage] = useState("");
-  const [imageUploading, setImageUploading] = useState(false);
+  const [mediaFiles, setMediaFiles] = useState([]);
+  const [mediaUploading, setMediaUploading] = useState(false);
+  const [mediaURLs, setMediaURLs] = useState([]);
 
-  useEffect(() => {
-    setImage(selectedPost?.mediaLink);
-    setFileType(selectedPost.mediaType);
-    form.setFieldsValue({
-      contentDescription: selectedPost?.contentDescription,
-    });
-  }, [snap.selectedPost]);
-
-  const handleUpdate = async (values) => {
+  const handleCreate = async (values) => {
+    if (mediaURLs.length === 0) {
+      message.error("Please upload at least one media file.");
+      return;
+    }
     try {
       setLoading(true);
-      const body = {
-        contentDescription: values.contentDescription,
-        mediaLink: image,
-        mediaType: fileType,
-      };
-      await PostService.updatePost(selectedPost.id, body);
+      for (let i = 0; i < mediaURLs.length; i++) {
+        const body = {
+          contentDescription: values.contentDescription,
+          mediaLink: mediaURLs[i].url,
+          mediaType: mediaURLs[i].type,
+        };
+        await PostService.createPost(body); // Save each post
+      }
       state.posts = (await PostService.getPosts()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      state.updatePostModalOpened = false; // Close the modal after update
+      state.uploadPostModalOpened = false;
+      form.resetFields();
+      setMediaFiles([]);
+      setMediaURLs([]);
     } catch (error) {
-      console.error("Failed to update post:", error);
+      console.error("Failed to create post:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFileChange = async (info) => {
-    if (info.file) {
-      setImageUploading(true);
-      const fileType = info.file.type.split("/")[0];
-      setFileType(fileType);
-      const url = await uploader.uploadFile(
-        info.fileList[0].originFileObj,
-        "posts"
-      );
-      setImage(url);
-    } else if (info.file.status === "removed") {
+  const handleFileChange = async ({ fileList }) => {
+    if (fileList.length > 3) {
+      message.error("You can upload a maximum of 3 media files.");
+      return;
     }
-    setImageUploading(false);
+
+    setMediaUploading(true);
+    const uploaded = [];
+
+    for (const fileObj of fileList) {
+      const file = fileObj.originFileObj;
+      const fileType = file.type.split("/")[0];
+      const url = await uploader.uploadFile(file, "posts");
+      uploaded.push({ url, type: fileType });
+    }
+
+    setMediaURLs(uploaded);
+    setMediaFiles(fileList);
+    setMediaUploading(false);
   };
 
   return (
     <Modal
-      open={snap.updatePostModalOpened}
+      open={snap.uploadPostModalOpened}
       onCancel={() => {
-        state.updatePostModalOpened = false;
+        state.uploadPostModalOpened = false;
       }}
       footer={[
-        <Button
-          key="cancel"
-          onClick={() => (state.updatePostModalOpened = false)}
-        >
+        <Button key="cancel" onClick={() => (state.uploadPostModalOpened = false)}>
           Cancel
         </Button>,
         <Button
-          disabled={imageUploading}
-          key="update"
+          disabled={mediaUploading}
+          key="create"
           type="primary"
           loading={loading}
           onClick={form.submit}
         >
-          Update
+          Create
         </Button>,
       ]}
     >
-      <h1>Update Post</h1>
-      <Form
-        form={form}
-        initialValues={{ contentDescription: selectedPost.contentDescription }}
-        onFinish={handleUpdate}
-      >
+      <h1>Create Skill Sharing Post</h1>
+      <Form form={form} onFinish={handleCreate}>
         <Form.Item
           name="contentDescription"
           label="Content Description"
-          rules={[
-            { required: true, message: "Please enter content description" },
-          ]}
+          rules={[{ required: true, message: "Please enter content description" }]}
         >
           <Input.TextArea />
         </Form.Item>
-        {!imageUploading && (
-        <Form.Item name="mediaLink" label="Media Link">
-            <Upload
-              accept="image/*,video/*"
-              onChange={handleFileChange}
-              showUploadList={false}
-              beforeUpload={() => false}
-              style={{ marginBottom: "1rem" }}
-            >
-              <Button icon={<UploadOutlined />}>Upload Media</Button>
-            </Upload>
-          </Form.Item>
-        )}
+
+        <Form.Item name="mediaLink" label="Upload Media (Max 3)">
+          <Upload
+            accept="image/*,video/*"
+            multiple
+            maxCount={3}
+            showUploadList={true}
+            beforeUpload={() => false}
+            onChange={handleFileChange}
+            fileList={mediaFiles}
+          >
+            <Button icon={<UploadOutlined />}>Upload</Button>
+          </Upload>
+        </Form.Item>
       </Form>
-      {imageUploading && <p>Please wait media is uploading</p>}
-      {fileType === "image" && image && (
-          <img
-            src={image}
-            alt="preview"
-            style={{
-              maxWidth: "100%",
-              maxHeight: "400px",
-              width: "100%",
-              height: "auto",
-              objectFit: "contain",
-              marginBottom: "1rem",
-            }}
-          />
+
+      {mediaUploading && <p>Please wait, uploading media...</p>}
+
+      <div style={{ marginTop: "1rem" }}>
+        {mediaURLs.map((file, index) =>
+          file.type === "image" ? (
+            <img
+              key={index}
+              src={file.url}
+              alt="preview"
+              style={{ width: "100%", maxHeight: 400, objectFit: "contain", marginBottom: 12 }}
+            />
+          ) : (
+            <video
+              key={index}
+              controls
+              src={file.url}
+              style={{ width: "100%", maxHeight: 400, marginBottom: 12 }}
+            />
+          )
         )}
-      {fileType === "video" && (
-        <video controls src={image} style={{ maxHeight: 400, width: "100%" }} />
-      )}
-      <div style={{ height: 16 }} />
+      </div>
     </Modal>
   );
 };
 
-export default UploadPostModal;
+export default SkillPostUploader;

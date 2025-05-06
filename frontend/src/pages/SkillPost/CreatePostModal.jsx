@@ -18,8 +18,14 @@ const CreatePostModal = () => {
 
   const handleSubmit = async () => {
     try {
-      setLoading(true);
       const values = await form.validateFields();
+
+      if (!image) {
+        message.error("Please upload a media file before submitting.");
+        return;
+      }
+
+      setLoading(true);
 
       const body = {
         ...values,
@@ -28,28 +34,29 @@ const CreatePostModal = () => {
         mediaType: fileType,
       };
 
+      // Temporary post for UI feedback
       const tempId = `temp-${Date.now()}`;
       const tempPost = {
         ...body,
         id: tempId,
         createdAt: new Date().toISOString(),
       };
-
       state.posts = [tempPost, ...state.posts];
 
+      // Actual API call
       const newPost = await PostService.createPost(body);
 
+      // Replace temporary post
       state.posts = state.posts.map((post) =>
         post.id === tempId ? newPost : post
       );
 
       message.success("Post created successfully");
 
-      // Reset form and state
+      // Cleanup
       form.resetFields();
       setImage("");
       setFileType("image");
-
       state.createPostModalOpened = false;
     } catch (error) {
       state.posts = state.posts.filter((post) => !post.id.startsWith("temp-"));
@@ -65,18 +72,24 @@ const CreatePostModal = () => {
       setImageUploading(true);
       const fileType = info.file.type.split("/")[0];
       setFileType(fileType);
-      const url = await uploader.uploadFile(
-        info.fileList[0].originFileObj,
-        "posts"
-      );
-      setImage(url);
-      setImageUploading(false);
+      try {
+        const url = await uploader.uploadFile(
+          info.fileList[0].originFileObj,
+          "posts"
+        );
+        setImage(url);
+      } catch (err) {
+        console.error("Upload error:", err);
+        message.error("Failed to upload file");
+      } finally {
+        setImageUploading(false);
+      }
     }
   };
 
   return (
     <Modal
-      visible={state.createPostModalOpened}
+      open={state.createPostModalOpened}
       onCancel={() => {
         form.resetFields();
         setImage("");
@@ -89,9 +102,7 @@ const CreatePostModal = () => {
         <Form.Item
           name="contentDescription"
           label="Content Description"
-          rules={[
-            { required: true, message: "Please enter content description" },
-          ]}
+          rules={[{ required: true, message: "Please enter content description" }]}
         >
           <Input.TextArea />
         </Form.Item>
@@ -99,17 +110,12 @@ const CreatePostModal = () => {
         {imageUploading && <p>Media is uploading, please wait...</p>}
 
         {!imageUploading && (
-          <Form.Item
-            name="mediaLink"
-            label="Media Link"
-            rules={[{ required: true, message: "Please enter media link" }]}
-          >
+          <Form.Item label="Upload Media">
             <Upload
               accept="image/*,video/*"
               onChange={handleFileChange}
               showUploadList={false}
               beforeUpload={() => false}
-              style={{ marginBottom: "1rem" }}
             >
               <Button icon={<UploadOutlined />}>Upload Media</Button>
             </Upload>
@@ -134,7 +140,8 @@ const CreatePostModal = () => {
         {fileType === "video" && image && (
           <video
             controls
-            src={image}           
+            src={image}
+            style={{ maxHeight: 400, width: "100%", marginBottom: "1rem" }}
           />
         )}
 
