@@ -61,7 +61,7 @@ public class ProgressUpdate {
     }
 
     public void setType(String type) {
-        if (type.equals("CREATE") || type.equals("UPDATE") || type.equals("DELETE")) {
+        if (type.equals("CREATE") || type.equals("UPDATE") || type.equals("DELETE")|| type.equals("STARTED")) {
             this.type = type;
         } else {
             throw new IllegalArgumentException("Invalid type: " + type);
