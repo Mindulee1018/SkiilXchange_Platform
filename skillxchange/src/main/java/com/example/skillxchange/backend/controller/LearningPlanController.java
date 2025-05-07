@@ -7,7 +7,6 @@ import com.example.skillxchange.backend.repository.LearningPlanRepository;
 import com.example.skillxchange.backend.repository.ProgressUpdateRepository;
 import com.example.skillxchange.backend.repository.UserRepository;
 import com.example.skillxchange.backend.model.User;
-import com.example.skillxchange.backend.service.LearningPlanService;
 import com.example.skillxchange.backend.service.NotificationPublisher;
 //import com.example.skillxchange.backend.service.NotificationService;
 
@@ -46,9 +45,6 @@ public class LearningPlanController {
 
     @Autowired
     private ProgressUpdateRepository progressUpdateRepository;
-
-    @Autowired
-    private LearningPlanService learningPlanService;
 
     private ProgressUpdate saveProgressUpdate(String userId, String planId, String type, String message) {
         ProgressUpdate update = new ProgressUpdate(userId, planId, type, message);
