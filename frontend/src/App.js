@@ -26,7 +26,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/oauth2-success" element={<OAuth2Success />} />
-        <Route path="/plans/create" element={<PlanTemplate />} />
+        <Route path="/plans/create" element={<ProtectedRoute><PlanTemplate /></ProtectedRoute>} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<ProtectedRoute> <ProfilePage /></ProtectedRoute>}/>
         <Route path="/plans" element={<ProtectedRoute><PlanListPage /></ProtectedRoute>} />
