@@ -8,6 +8,7 @@ const PlanListPage = () => {
   const [plans, setPlans] = useState([]);
   const [ongoingPlans, setOngoingPlans] = useState([]);
   const [completedPlans, setCompletedPlans] = useState([]);
+  const [updates, setUpdates] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
