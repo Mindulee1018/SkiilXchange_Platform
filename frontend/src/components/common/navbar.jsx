@@ -75,6 +75,11 @@ const Navbar = () => {
               Created Plans
             </Link>
           </li>
+          <li className="nav-item">
+            <Link className="nav-link" to="/progresspage">
+              Progress Page
+            </Link>
+          </li>
         </ul>
 
         {profile ? (

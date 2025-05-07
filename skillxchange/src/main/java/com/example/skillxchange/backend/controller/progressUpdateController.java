@@ -22,8 +22,9 @@ public class progressUpdateController {
     @Autowired
     private UserRepository userRepository;
 
-    
-    // GET /api/ProgressUpdate - Get progress updates (notifications) for logged-in user
+    // GET /api/ProgressUpdate - Get progress updates (notifications) for logged-in
+    // user
+    // GET /api/progress-update - Get progress updates (notifications) for logged-in user
     @GetMapping("/ProgressUpdate")
     public ResponseEntity<?> getProgressUpdatesForCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -38,8 +39,9 @@ public class progressUpdateController {
         return ResponseEntity.ok(updates);
     }
 
+    // POST /api/progress-update - Post a new progress update for the logged-in user
     @PostMapping("/ProgressUpdate")
-    public ResponseEntity<?> ProgressUpdatesForCurrentUser() {
+    public ResponseEntity<?> createProgressUpdate(@RequestBody ProgressUpdate progressUpdate) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
@@ -48,7 +50,21 @@ public class progressUpdateController {
             return ResponseEntity.status(401).body("Unauthorized");
         }
 
-        List<ProgressUpdate> updates = progressUpdateRepository.findByUserIdOrderByTimestampDesc(user.getId());
+        progressUpdate.setUserId(user.getId());
+        progressUpdateRepository.save(progressUpdate);
+        return ResponseEntity.ok("Progress update saved successfully.");
+    }
+
+    // GET /api/progress/{planId} - Get progress updates by planId
+    @CrossOrigin(origins = "http://localhost:3000")
+    @GetMapping("/progress/{planId}")
+    public ResponseEntity<List<ProgressUpdate>> getProgressByPlanId(@PathVariable String planId) {
+        List<ProgressUpdate> updates = progressUpdateRepository.findByPlanId(planId);
+        
+        if (updates.isEmpty()) {
+            return ResponseEntity.status(404).body(null); // No updates found
+        }
+
         return ResponseEntity.ok(updates);
     }
 }

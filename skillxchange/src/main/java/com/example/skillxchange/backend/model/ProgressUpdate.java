@@ -16,10 +16,12 @@ public class ProgressUpdate {
     private String message;
     private Date timestamp; // use java.util.Date
 
+    // Default constructor
     public ProgressUpdate() {
         this.timestamp = new Date();
     }
 
+    // Parameterized constructor
     public ProgressUpdate(String userId, String planId, String type, String message) {
         this.userId = userId;
         this.planId = planId;
@@ -59,7 +61,11 @@ public class ProgressUpdate {
     }
 
     public void setType(String type) {
-        this.type = type;
+        if (type.equals("CREATE") || type.equals("UPDATE") || type.equals("DELETE")|| type.equals("STARTED")) {
+            this.type = type;
+        } else {
+            throw new IllegalArgumentException("Invalid type: " + type);
+        }
     }
 
     public String getMessage() {
@@ -76,5 +82,32 @@ public class ProgressUpdate {
 
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
+    }
+
+    // Override toString for better logging/debugging
+    @Override
+    public String toString() {
+        return "ProgressUpdate{" +
+               "id='" + id + '\'' +
+               ", userId='" + userId + '\'' +
+               ", planId='" + planId + '\'' +
+               ", type='" + type + '\'' +
+               ", message='" + message + '\'' +
+               ", timestamp=" + timestamp +
+               '}';
+    }
+
+    // Override equals and hashCode to ensure proper object comparison
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProgressUpdate that = (ProgressUpdate) o;
+        return id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }
