@@ -14,8 +14,10 @@ import com.example.skillxchange.backend.service.NotificationPublisher;
 import jakarta.validation.Valid;
 
 import java.security.Principal;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -250,6 +252,34 @@ public class LearningPlanController {
     public ResponseEntity<Void> startPlan(@PathVariable String id, Principal principal) {
         learningPlanService.startPlan(id, principal.getName());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/learning-plans/foryou")
+    public ResponseEntity<?> getForYouFeed(@AuthenticationPrincipal UserDetails userDetails) {
+        Optional<User> userOpt = userRepository.findByUsername(userDetails.getUsername());
+        if (userOpt.isEmpty()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+
+        User user = userOpt.get();
+
+        // Plans by followed users
+        List<LearningPlan> followedUserPlans = learningPlanRepository
+                .findByUserIdInAndIsPublicTrue(user.getFollowingIds());
+
+        // Plans by followed tags
+        List<LearningPlan> tagPlans = learningPlanRepository
+                .findByTagsInIgnoreCaseAndIsPublicTrue(user.getFollowedTags());
+
+        // Recent public plans
+        List<LearningPlan> recentPlans = learningPlanRepository
+                .findTop10ByIsPublicTrueOrderByCreatedAtDesc();
+
+        // Combine all, removing duplicates
+        Set<LearningPlan> combined = new LinkedHashSet<>();
+        combined.addAll(followedUserPlans);
+        combined.addAll(tagPlans);
+        combined.addAll(recentPlans);
+
+        return ResponseEntity.ok(combined);
     }
 
 

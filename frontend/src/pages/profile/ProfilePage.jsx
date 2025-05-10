@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import useProfile from '../../hooks/useProfile';
 import NotificationPanel from '../../components/common/NotificationPanel';
 import Navbar from '../../components/common/navbar';
+import ProfileSidebar from '../../components/profile/ProfileSidebar';
 import { BsBellFill } from 'react-icons/bs';
 
 const ProfilePage = () => {
@@ -15,6 +16,9 @@ const ProfilePage = () => {
   const [followersList, setFollowersList] = useState([]);
   const [followingList, setFollowingList] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toggleSidebar = () => setIsCollapsed(prev => !prev);
 
   const toggleNotifications = () => {
     setShowNotifications(prev => !prev);
@@ -72,31 +76,41 @@ const ProfilePage = () => {
     <>
       <Navbar />
 
-      <div className="container mt-5">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <div className="text-center">
-            <img
-              src={profile.profilePicture || 'https://via.placeholder.com/100'}
-              alt="Profile"
-              className="rounded-circle"
-              style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-            />
-            <h2 className="mt-3">{profile.username}</h2>
-            <p className="text-muted">{profile.description || 'No description provided.'}</p>
+      <div className="container-fluid mt-5 px-0">
+      <div className="row">
+          {/* Sidebar */}
+          <div className="col-md-3 mb-4">
+            <ProfileSidebar isCollapsed={isCollapsed} toggleCollapse={toggleSidebar} />
           </div>
 
-          <div>
-            <button onClick={toggleNotifications} className="btn btn-outline-warning">
-              <BsBellFill />
-            </button>
+    <div className="col-md-9">
+        
+      <div className="position-relative mb-4">
+        {/* Notification Bell Top-Right */}
+        <div className="position-absolute top-0 end-0">
+          <button onClick={toggleNotifications} className="btn btn-outline-warning">
+            <BsBellFill />
+          </button>
 
-            {showNotifications && (
-              <div className="position-absolute end-0 mt-2 z-3 bg-white shadow-lg rounded-lg w-100" style={{ maxWidth: '300px' }}>
-                <NotificationPanel />
-              </div>
-            )}
-          </div>
+          {showNotifications && (
+            <div className="mt-2 bg-white shadow-lg rounded-lg w-100" style={{ maxWidth: '300px' }}>
+              <NotificationPanel />
+            </div>
+          )}
         </div>
+
+        {/* Centered Profile Info */}
+        <div className="text-center">
+          <img
+            src={profile.profilePicture || 'https://via.placeholder.com/100'}
+            alt="Profile"
+            className="rounded-circle"
+            style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+          />
+          <h2 className="mt-3">{profile.username}</h2>
+          <p className="text-muted">{profile.description || 'No description provided.'}</p>
+        </div>
+      </div>
 
         <div className="d-flex justify-content-center gap-3 mt-2">
           <Button variant="outline-primary" size="sm" onClick={() => setShowFollowers(true)}>
@@ -177,6 +191,8 @@ const ProfilePage = () => {
           </Modal.Body>
         </Modal>
       </div>
+    </div>
+    </div>
     </>
   );
 };

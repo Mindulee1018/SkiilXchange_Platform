@@ -94,7 +94,7 @@ const Dashboard = () => {
             <p>No public plans found.</p>
           ) : (
             <div className="row">
-              {publicPlans.map((plan) => (
+              {publicPlans.slice(0, 6).map((plan) => (
                 <div key={plan.id} className="col-md-6 mb-4">
                   <div
                     className="card shadow-sm h-100"
@@ -116,6 +116,11 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))}
+              <div className="text-center mt-3">
+                  <Link to="/plans/public" className="btn btn-outline-primary">
+                    View All Public Plans
+                  </Link>
+                </div>
             </div>
           )}
         </div>

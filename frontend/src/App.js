@@ -16,6 +16,8 @@ import PlanListPage from "./pages/plan/PlanListPage";
 import PlanViewPage from './pages/plan/PlanViewPage';
 import SearchPage from "./pages/common/SearchPage";
 import UserProfilePage from "./pages/profile/UserProfilePage";
+import PublicPlansPage from "./pages/plan/PublicPlansPage";
+import ForYouPage from "./pages/common/ForYouPage";
 
 
 function App() {
@@ -34,6 +36,8 @@ function App() {
         <Route path="/plans/view/:id" element={<ProtectedRoute><PlanViewPage /></ProtectedRoute>} />
         <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
         <Route path="/user/:id" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+        <Route path="/plans/public" element={<ProtectedRoute><PublicPlansPage /></ProtectedRoute>} />
+        <Route path="/foryou" element={<ProtectedRoute><ForYouPage /></ProtectedRoute>} />
       </Routes>
     </Router>
   );
