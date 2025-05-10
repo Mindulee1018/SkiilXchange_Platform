@@ -1,0 +1,17 @@
+.post-description {
+    color: #1890ff;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: #77c2e285;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+
+.my-post {
+    background: #6d3a3a;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+  }
