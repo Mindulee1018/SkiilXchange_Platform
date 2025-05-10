@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.example.skillxchange.backend.model.Comment;
 import com.example.skillxchange.backend.repository.CommentRepository;
-import com.example.skillxchange.backend.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,9 +16,6 @@ public class CommentController {
 
     @Autowired
     private CommentRepository commentRepository;
-
-    @Autowired
-    private UserRepository userRepository;
 
     // POST: Create a new Comment
     @PostMapping

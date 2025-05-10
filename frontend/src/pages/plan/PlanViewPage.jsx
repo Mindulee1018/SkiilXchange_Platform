@@ -15,6 +15,10 @@ const PlanViewPage = () => {
   const totalTasks = plan?.tasks?.length || 0;
   const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
+  const handleViewProgress = () => {
+    navigate(`/plans/progress/${plan.id}`); // Redirect to ProgressPage with plan ID
+  };
+
   useEffect(() => {
     const fetchPlan = async () => {
       try {
@@ -173,7 +177,11 @@ const PlanViewPage = () => {
       <Navbar />
       <div className="container mt-5">
         <div className="d-flex justify-content-between align-items-center">
-          <h2>{plan.title}</h2>
+  
+          <h2>
+            {plan.title}
+            {plan.completed && <span className="badge bg-success ms-3">✅ Plan Completed</span>}
+          </h2>
           <div>
             <button className="btn btn-outline-primary me-2" onClick={() => navigate(`/plans/edit/${id}`)}>
               Edit
@@ -232,6 +240,12 @@ const PlanViewPage = () => {
             <p className="text-muted text-center">
               {completedTasks} of {totalTasks} tasks completed
             </p>
+
+            {plan.completed && (
+              <div className="alert alert-success text-center mt-3">
+                🎉 Congratulations! You have completed this learning plan.
+              </div>
+            )}
           </>
         )}
 
@@ -273,6 +287,11 @@ const PlanViewPage = () => {
             ))}
           </ul>
         )}
+
+        {/* View Plan Progress Button */}
+        <button className="btn btn-info mt-3" onClick={handleViewProgress}>
+          View Plan Progress
+        </button>
 
         <WebSocketNotifications />
       </div>

@@ -18,6 +18,7 @@ import SearchPage from "./pages/common/SearchPage";
 import UserProfilePage from "./pages/profile/UserProfilePage";
 import PublicPlansPage from "./pages/plan/PublicPlansPage";
 import ForYouPage from "./pages/common/ForYouPage";
+import ProgressPage from "./pages/plan/ProgressPage";
 
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
         <Route path="/user/:id" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
         <Route path="/plans/public" element={<ProtectedRoute><PublicPlansPage /></ProtectedRoute>} />
         <Route path="/foryou" element={<ProtectedRoute><ForYouPage /></ProtectedRoute>} />
+        <Route path="/plans/progress/:planId" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

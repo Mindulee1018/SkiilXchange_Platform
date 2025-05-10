@@ -2,7 +2,6 @@ package com.example.skillxchange.backend.controller;
 
 import com.example.skillxchange.backend.model.SkillPost;
 import com.example.skillxchange.backend.service.SkillPostService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
