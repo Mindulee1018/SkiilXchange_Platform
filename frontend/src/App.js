@@ -16,6 +16,8 @@ import PlanListPage from "./pages/plan/PlanListPage";
 import PlanViewPage from './pages/plan/PlanViewPage';
 import SearchPage from "./pages/common/SearchPage";
 import UserProfilePage from "./pages/profile/UserProfilePage";
+import PublicPlansPage from "./pages/plan/PublicPlansPage";
+import ForYouPage from "./pages/common/ForYouPage";
 import ProgressPage from "./pages/plan/ProgressPage";
 
 
@@ -27,7 +29,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/oauth2-success" element={<OAuth2Success />} />
-        <Route path="/plans/create" element={<PlanTemplate />} />
+        <Route path="/plans/create" element={<ProtectedRoute><PlanTemplate /></ProtectedRoute>} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<ProtectedRoute> <ProfilePage /></ProtectedRoute>}/>
         <Route path="/plans" element={<ProtectedRoute><PlanListPage /></ProtectedRoute>} />
@@ -35,6 +37,8 @@ function App() {
         <Route path="/plans/view/:id" element={<ProtectedRoute><PlanViewPage /></ProtectedRoute>} />
         <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
         <Route path="/user/:id" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+        <Route path="/plans/public" element={<ProtectedRoute><PublicPlansPage /></ProtectedRoute>} />
+        <Route path="/foryou" element={<ProtectedRoute><ForYouPage /></ProtectedRoute>} />
         <Route path="/plans/progress/:planId" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
       </Routes>
     </Router>
