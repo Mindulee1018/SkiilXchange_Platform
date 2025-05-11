@@ -80,6 +80,11 @@ const Navbar = () => {
               Progress Page
             </Link>
           </li>
+          <li className="nav-item">
+            <Link className="nav-link" to="/mypost">
+              Your Posts
+            </Link>
+          </li>
         </ul>
 
         {profile ? (

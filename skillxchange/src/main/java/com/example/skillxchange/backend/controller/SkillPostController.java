@@ -1,58 +1,111 @@
+// SkillPostController.java (Updated)
 package com.example.skillxchange.backend.controller;
 
 import com.example.skillxchange.backend.model.SkillPost;
+import com.example.skillxchange.backend.repository.UserRepository;
 import com.example.skillxchange.backend.service.SkillPostService;
+import com.example.skillxchange.backend.repository.UserRepository;
+import com.example.skillxchange.backend.model.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.Date;
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/posts")
 public class SkillPostController {
 
     private final SkillPostService postService;
+    private final UserRepository userRepository;
 
-    //@Autowired
-    public SkillPostController(SkillPostService postService) {
+    public SkillPostController(SkillPostService postService, UserRepository userRepository) {
         this.postService = postService;
+        this.userRepository = userRepository;
     }
 
+    //get all posts
     @GetMapping
     public ResponseEntity<List<SkillPost>> getPosts() {
-        List<SkillPost> posts = postService.getAllPosts();
-        return new ResponseEntity<>(posts, HttpStatus.OK);
+        return ResponseEntity.ok(postService.getAllPosts());
     }
 
-    @GetMapping("/{userId}")
+    //get posts by user
+    @GetMapping("/user/{userId}")
     public ResponseEntity<List<SkillPost>> getPostsByUserId(@PathVariable String userId) {
-        List<SkillPost> posts = postService.getPostsByUserId(userId);
-        return new ResponseEntity<>(posts, HttpStatus.OK);
+        return ResponseEntity.ok(postService.getPostsByUserId(userId));
     }
 
-    @PostMapping
+    //endpoint to upload without media
+    /*@PostMapping
     public ResponseEntity<SkillPost> createPost(@RequestBody SkillPost post) {
-        SkillPost savedPost = postService.createPost(post);
-        return new ResponseEntity<>(savedPost, HttpStatus.CREATED);
-    }
+        return new ResponseEntity<>(postService.createPost(post), HttpStatus.CREATED);
+    }*/
 
-    @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> deletePost(@PathVariable String postId) {
-        postService.deletePost(postId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
+    //upload user with media
+    @PostMapping("/upload")
+    public ResponseEntity<SkillPost> uploadPostWithMedia(
+            @RequestParam("username") String username,
+            @RequestParam("Description") String description,
+            @RequestParam("FilePath") MultipartFile file) {
 
-    @PutMapping("/{postId}")
-    public ResponseEntity<SkillPost> updatePost(@PathVariable String postId, @RequestBody SkillPost updatedPost) {
-        Optional<SkillPost> optionalPost = postService.getPostById(postId);
-        if (optionalPost.isPresent()) {
-            SkillPost existingPost = optionalPost.get();
-            SkillPost savedPost = postService.updatePost(existingPost, updatedPost);
-            return new ResponseEntity<>(savedPost, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            // 1. Look up the User by username
+            Optional<User> userOpt = userRepository.findByUsername(username);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+            User user = userOpt.get();
+
+            // save the file to /uploads
+            String uploadDir = System.getProperty("user.dir") + "/uploads/";
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path filePath = Paths.get(uploadDir, fileName);
+            Files.createDirectories(filePath.getParent());
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            String mimeType = Files.probeContentType(filePath);
+
+
+            // Create the SkillPost
+            SkillPost post = new SkillPost();
+            post.setUserId(user.getId());
+            post.setContentDescription(description);
+            post.setMediaLink("uploads/" + fileName);
+            post.setMediaType(mimeType);
+            post.setTimestamp(new Date());    // also good to set a timestamp here
+
+            //save the post
+            SkillPost saved = postService.createPost(post);
+            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-}     
+    //delete the post
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void> deletePost(@PathVariable String postId) {
+        postService.deletePost(postId);
+        return ResponseEntity.noContent().build();
+    }
+
+    //update the post
+    @PutMapping("/{postId}")
+    public ResponseEntity<SkillPost> updatePost(
+            @PathVariable String postId,
+            @RequestBody SkillPost updatedPost) {
+
+        Optional<SkillPost> optionalPost = postService.getPostById(postId);
+        return optionalPost
+                .map(existing -> ResponseEntity.ok(postService.updatePost(existing, updatedPost)))
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+}
