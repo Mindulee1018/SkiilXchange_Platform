@@ -1,32 +1,38 @@
-import { v4 as uuidv4 } from 'uuid';
+
 
 class UploadFileService {
-  async uploadFile(file, path) {
-    return new Promise((resolve, reject) => {
-      const formData = new FormData();
-      const uniqueFileName = `${uuidv4()}_${file.name}`;
-      formData.append("file", file);
-      formData.append("username", loggedInUsername); // ADD THIS
-    formData.append("description", description); // AND THIS
-
-      fetch("http://localhost:8080/api/posts/upload", {
-        method: "POST",
-        body: formData,
-      })
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          }
-          throw new Error("Failed to upload file");
-        })
-        .then((data) => {
-          // Assuming the response contains the uploaded file's URL
-          resolve(data.url); // Adjust depending on your backend response
-        })
-        .catch((err) => {
-          reject(err);
-        });
+  async getCurrentUser() {
+    const token = localStorage.getItem('token');
+    const res = await fetch('http://localhost:8080/api/auth/user', {
+      headers: { Authorization: `Bearer ${token}` }
     });
+
+    if (!res.ok) throw new Error('Failed to fetch user');
+    return res.json();
+  }
+
+  async uploadFile(file, path, description = '') {
+    const formData = new FormData();
+    const uniqueFileName = `${Date.now()}_${file.name}`;
+    formData.append("FilePath", file); // must match backend param
+    formData.append("description", description);
+
+    try {
+      const user = await this.getCurrentUser();
+      formData.append("username", user.username);
+
+      const response = await fetch("http://localhost:8080/api/posts/upload", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!response.ok) throw new Error("Failed to upload file");
+      const data = await response.json();
+      return data.mediaLink; // adjust if your backend returns differently
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 }
 

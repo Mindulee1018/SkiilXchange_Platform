@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import UserService from "../../Services/UserService";
-import LikeService from "../../Services/LikeService";
+import UserService from "../../services/UserService";
+import LikeService from "../../services/LikeService";
 import { useSnapshot } from "valtio";
 import state from "../../util/Store";
-import CommentService from "../../Services/CommentService";
+import CommentService from "../../services/CommentService";
 import {
   SendOutlined,
   EditOutlined,
@@ -29,7 +29,7 @@ import {
   Badge
 } from "antd";
 import PostService from "../../services/PostService";
-import CommentCard from "./CommentCard";
+import CommentCard from "../comment/CommentCard";
 // import "./FriendsPost.css"; // Make sure to create this CSS file
 
 const FriendsPost = ({ post }) => {

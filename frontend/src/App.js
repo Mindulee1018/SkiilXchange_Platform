@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { useSnapshot } from "valtio";
 import state from "./util/Store"; // Make sure this path is correct
-import CreatePostModal from "./pages/SkliiPost/CreatePostModal";
+
 import MyPost from "./pages/SkliiPost/MyPost";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
@@ -46,8 +46,7 @@ function App() {
         <Route path="/CommentCard" element={<ProtectedRoute><CommentCard /></ProtectedRoute>} />
       </Routes>
 
-      {/* 👇 Add this to conditionally show the modal */}
-      {snap.createPostModalOpened && <CreatePostModal />}
+    
 
 
       {snap.uploadPostModalOpened && <SkillPostUploader />}

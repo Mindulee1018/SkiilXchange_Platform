@@ -31,4 +31,26 @@ const getProfile = async () => {
   return res.data;
 };
 
-export default { login, signup, isAuthenticated, logout, getProfile };
+const getCurrentUser = async () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) return null;
+
+  try {
+    const response = await fetch("http://localhost:8080/api/auth/user", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    return data; // includes username, email, id, etc.
+  } catch (err) {
+    console.error("Failed to fetch current user:", err);
+    return null;
+  }
+};
+
+export default { login, signup, isAuthenticated, logout, getProfile, getCurrentUser };
