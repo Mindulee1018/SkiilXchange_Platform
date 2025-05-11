@@ -32,6 +32,8 @@ public class LearningPlan {
 
     private boolean completed = false;
 
+    private boolean started;
+
     private int learningPeriodInDays;
 
     private Date createdAt = new Date();
@@ -63,6 +65,9 @@ public class LearningPlan {
 
     public boolean isCompleted() {return completed;}
     public void setCompleted(boolean completed) {this.completed = completed;}
+
+    public boolean isStarted() {return started;}
+    public void setStarted(boolean started) {this.started = started;}
     
     public int getLearningPeriodInDays() { return learningPeriodInDays; }
     public void setLearningPeriodInDays(int learningPeriodInDays) { this.learningPeriodInDays = learningPeriodInDays; }

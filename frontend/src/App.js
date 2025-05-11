@@ -24,6 +24,10 @@ import 'antd/dist/reset.css';
 import SkillPostUploader from "./pages/SkliiPost/SkillPostUploader";
 import CommentCard from "./pages/comment/CommentCard";
 
+import PublicPlansPage from "./pages/plan/PublicPlansPage";
+import ForYouPage from "./pages/common/ForYouPage";
+import ProgressPage from "./pages/plan/ProgressPage";
+
 function App() {
   const snap = useSnapshot(state); // 👈 Add this line
 
@@ -34,7 +38,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/oauth2-success" element={<OAuth2Success />} />
-        <Route path="/plans/create" element={<PlanTemplate />} />
+        <Route path="/plans/create" element={<ProtectedRoute><PlanTemplate /></ProtectedRoute>} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/plans" element={<ProtectedRoute><PlanListPage /></ProtectedRoute>} />
@@ -44,6 +48,9 @@ function App() {
         <Route path="/user/:id" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
         <Route path="/mypost" element={<ProtectedRoute><MyPost /></ProtectedRoute>} />
         <Route path="/CommentCard" element={<ProtectedRoute><CommentCard /></ProtectedRoute>} />
+        <Route path="/plans/public" element={<ProtectedRoute><PublicPlansPage /></ProtectedRoute>} />
+        <Route path="/foryou" element={<ProtectedRoute><ForYouPage /></ProtectedRoute>} />
+        <Route path="/plans/progress/:planId" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
       </Routes>
 
     

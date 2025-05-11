@@ -123,7 +123,7 @@ const UserProfilePage = () => {
         {user && (
           <div className="text-center mb-4">
             <img
-              src={user.profilePicture || "https://via.placeholder.com/100"}
+              src={user.profilePicture || "https://static.vecteezy.com/system/resources/thumbnails/009/734/564/small/default-avatar-profile-icon-of-social-media-user-vector.jpg"}
               alt="Profile"
               className="rounded-circle"
               style={{ width: '100px', height: '100px', objectFit: 'cover' }}

@@ -7,15 +7,16 @@ import com.example.skillxchange.backend.repository.LearningPlanRepository;
 import com.example.skillxchange.backend.repository.ProgressUpdateRepository;
 import com.example.skillxchange.backend.repository.UserRepository;
 import com.example.skillxchange.backend.model.User;
-import com.example.skillxchange.backend.service.LearningPlanService;
 import com.example.skillxchange.backend.service.NotificationPublisher;
 //import com.example.skillxchange.backend.service.NotificationService;
 
 import jakarta.validation.Valid;
 
 import java.security.Principal;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -46,9 +47,6 @@ public class LearningPlanController {
 
     @Autowired
     private ProgressUpdateRepository progressUpdateRepository;
-
-    @Autowired
-    private LearningPlanService learningPlanService;
 
     private ProgressUpdate saveProgressUpdate(String userId, String planId, String type, String message) {
         ProgressUpdate update = new ProgressUpdate(userId, planId, type, message);
@@ -209,8 +207,14 @@ public class LearningPlanController {
         task.setCompletedAt(new java.util.Date());
         plan.setTasks(tasks);
 
+        // Check if all tasks are completed
+        boolean allCompleted = tasks.stream().allMatch(Task::isCompleted);
+        plan.setCompleted(allCompleted);
+
+        plan.setTasks(tasks);
+
         learningPlanRepository.save(plan);
-        return ResponseEntity.ok("Task marked as completed");
+        return ResponseEntity.ok("Task marked as completed" + (allCompleted ? ". Plan completed!" : ""));
     }
     //mark the task as incomplete
     @PatchMapping("/learning-plans/{planId}/tasks/{taskIndex}/incomplete")
@@ -246,10 +250,61 @@ public class LearningPlanController {
     }
     
 
+    // Start Plan
     @PostMapping("/learning-plans/{id}/start")
-    public ResponseEntity<Void> startPlan(@PathVariable String id, Principal principal) {
-        learningPlanService.startPlan(id, principal.getName());
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> startPlan(@PathVariable String id, Principal principal) {
+        Optional<User> userOpt = userRepository.findByUsername(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+
+        User user = userOpt.get();
+        Optional<LearningPlan> planOpt = learningPlanRepository.findById(id);
+        if (planOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Learning plan not found");
+        }
+
+        LearningPlan plan = planOpt.get();
+        if (!plan.getUserId().equals(user.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to start this plan");
+        }
+
+        // Start the plan
+        plan.setStarted(true);
+        learningPlanRepository.save(plan);
+
+        ProgressUpdate update = saveProgressUpdate(user.getId(), plan.getId(), "START", "Started plan: " + plan.getTitle());
+        notificationPublisher.sendPlanNotification(update);
+
+        return ResponseEntity.ok("Plan started successfully");
+    }
+
+    @GetMapping("/learning-plans/foryou")
+    public ResponseEntity<?> getForYouFeed(@AuthenticationPrincipal UserDetails userDetails) {
+        Optional<User> userOpt = userRepository.findByUsername(userDetails.getUsername());
+        if (userOpt.isEmpty()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+
+        User user = userOpt.get();
+
+        // Plans by followed users
+        List<LearningPlan> followedUserPlans = learningPlanRepository
+                .findByUserIdInAndIsPublicTrue(user.getFollowingIds());
+
+        // Plans by followed tags
+        List<LearningPlan> tagPlans = learningPlanRepository
+                .findByTagsInIgnoreCaseAndIsPublicTrue(user.getFollowedTags());
+
+        // Recent public plans
+        List<LearningPlan> recentPlans = learningPlanRepository
+                .findTop10ByIsPublicTrueOrderByCreatedAtDesc();
+
+        // Combine all, removing duplicates
+        Set<LearningPlan> combined = new LinkedHashSet<>();
+        combined.addAll(followedUserPlans);
+        combined.addAll(tagPlans);
+        combined.addAll(recentPlans);
+
+        return ResponseEntity.ok(combined);
     }
 
 
