@@ -112,6 +112,7 @@ const ProfilePage = () => {
             <ProfileSidebar isCollapsed={isCollapsed} toggleCollapse={toggleSidebar} />
           </div>
 
+
           <div className="col-md-9">
             <div className="position-relative mb-4">
               {/* Notification Buttons Top-Right */}
@@ -123,6 +124,36 @@ const ProfilePage = () => {
                   <BsBellFill />
                 </button>
               </div>
+
+    <div className="col-md-9">
+        
+      <div className="position-relative mb-4">
+        {/* Notification Bell Top-Right */}
+        <div className="position-absolute top-0 end-0">
+          <button onClick={toggleNotifications} className="btn btn-outline-warning">
+            <BsBellFill />
+          </button>
+
+          {showNotifications && (
+            <div className="mt-2 bg-white shadow-lg rounded-lg w-100" style={{ maxWidth: '300px' }}>
+              <NotificationPanel />
+            </div>
+          )}
+        </div>
+
+        {/* Centered Profile Info */}
+        <div className="text-center">
+          <img
+            src={profile.profilePicture || 'https://static.vecteezy.com/system/resources/thumbnails/009/734/564/small/default-avatar-profile-icon-of-social-media-user-vector.jpg'}
+            alt="Profile"
+            className="rounded-circle"
+            style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+          />
+          <h2 className="mt-3">{profile.username}</h2>
+          <p className="text-muted">{profile.description || 'No description provided.'}</p>
+        </div>
+      </div>
+
 
               {/* Notifications */}
               {showNotifications && (

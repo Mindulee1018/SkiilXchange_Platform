@@ -15,4 +15,6 @@ public interface LearningPlanRepository extends MongoRepository<LearningPlan, St
     List<LearningPlan> findByUserIdInAndIsPublicTrue(Set<String> userIds);
     List<LearningPlan> findByTagsInIgnoreCaseAndIsPublicTrue(Set<String> tags);
     List<LearningPlan> findTop10ByIsPublicTrueOrderByCreatedAtDesc();
+
+    long countByUserId(String userId);
 }
