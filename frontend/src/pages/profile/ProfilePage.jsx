@@ -104,7 +104,6 @@ const ProfilePage = () => {
   return (
     <>
       <Navbar />
-
       <div className="container-fluid mt-5 px-0">
         <div className="row">
           {/* Sidebar */}
@@ -112,10 +111,9 @@ const ProfilePage = () => {
             <ProfileSidebar isCollapsed={isCollapsed} toggleCollapse={toggleSidebar} />
           </div>
 
-
           <div className="col-md-9">
             <div className="position-relative mb-4">
-              {/* Notification Buttons Top-Right */}
+              {/* Top-Right Notification Buttons */}
               <div className="position-absolute top-0 end-0 d-flex gap-2">
                 <button onClick={toggleProgressUpdates} className="btn btn-outline-success">
                   Progress Updates
@@ -125,71 +123,10 @@ const ProfilePage = () => {
                 </button>
               </div>
 
-    <div className="col-md-9">
-        
-      <div className="position-relative mb-4">
-        {/* Notification Bell Top-Right */}
-        <div className="position-absolute top-0 end-0">
-          <button onClick={toggleNotifications} className="btn btn-outline-warning">
-            <BsBellFill />
-          </button>
-
-          {showNotifications && (
-            <div className="mt-2 bg-white shadow-lg rounded-lg w-100" style={{ maxWidth: '300px' }}>
-              <NotificationPanel />
-            </div>
-          )}
-        </div>
-
-        {/* Centered Profile Info */}
-        <div className="text-center">
-          <img
-            src={profile.profilePicture || 'https://static.vecteezy.com/system/resources/thumbnails/009/734/564/small/default-avatar-profile-icon-of-social-media-user-vector.jpg'}
-            alt="Profile"
-            className="rounded-circle"
-            style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-          />
-          <h2 className="mt-3">{profile.username}</h2>
-          <p className="text-muted">{profile.description || 'No description provided.'}</p>
-        </div>
-      </div>
-
-
-              {/* Notifications */}
-              {showNotifications && (
-                <div className="mt-2 bg-white shadow-lg rounded-lg w-100" style={{ maxWidth: '300px' }}>
-                  <NotificationPanel />
-                </div>
-              )}
-
-              {/* Progress Updates */}
-              {showProgressUpdates && (
-                <div className="mt-2 bg-white shadow-lg rounded-lg w-100" style={{ maxWidth: '300px' }}>
-                  <div className="p-3">
-                    <h6>Progress Updates</h6>
-                    {progressUpdates.length === 0 ? (
-                      <p>No progress updates yet.</p>
-                    ) : (
-                      <ul className="list-group">
-                        {progressUpdates.map(update => (
-                          <li key={update.id} className="list-group-item small">
-                            {update.message || `${update.planTitle} - Day ${update.dayCompleted} completed`}
-                            <br />
-                            <small className="text-muted">
-                              {new Date(update.timestamp).toLocaleString()}
-                            </small>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Profile Info */}
+              {/* Centered Profile Info */}
               <div className="text-center">
                 <img
-                  src={profile.profilePicture || 'https://via.placeholder.com/100'}
+                  src={profile.profilePicture || 'https://static.vecteezy.com/system/resources/thumbnails/009/734/564/small/default-avatar-profile-icon-of-social-media-user-vector.jpg'}
                   alt="Profile"
                   className="rounded-circle"
                   style={{ width: '100px', height: '100px', objectFit: 'cover' }}
@@ -199,7 +136,38 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Follower Buttons */}
+            {/* Notification Panel */}
+            {showNotifications && (
+              <div className="mt-2 bg-white shadow-lg rounded-lg w-100" style={{ maxWidth: '300px' }}>
+                <NotificationPanel />
+              </div>
+            )}
+
+            {/* Progress Updates Panel */}
+            {showProgressUpdates && (
+              <div className="mt-2 bg-white shadow-lg rounded-lg w-100" style={{ maxWidth: '300px' }}>
+                <div className="p-3">
+                  <h6>Progress Updates</h6>
+                  {progressUpdates.length === 0 ? (
+                    <p>No progress updates yet.</p>
+                  ) : (
+                    <ul className="list-group">
+                      {progressUpdates.map(update => (
+                        <li key={update.id} className="list-group-item small">
+                          {update.message || `${update.planTitle} - Day ${update.dayCompleted} completed`}
+                          <br />
+                          <small className="text-muted">
+                            {new Date(update.timestamp).toLocaleString()}
+                          </small>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Followers & Following Buttons */}
             <div className="d-flex justify-content-center gap-3 mt-2">
               <Button variant="outline-primary" size="sm" onClick={() => setShowFollowers(true)}>
                 Followers ({profile.followers})
@@ -211,7 +179,7 @@ const ProfilePage = () => {
 
             <hr />
 
-            {/* Public Plans */}
+            {/* Public Learning Plans */}
             <h4 className="mb-3">Your Public Learning Plans</h4>
             {publicPlans.length === 0 ? (
               <p>You have no public plans yet.</p>
