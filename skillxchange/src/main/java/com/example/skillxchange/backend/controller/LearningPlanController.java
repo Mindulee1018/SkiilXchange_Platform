@@ -7,6 +7,7 @@ import com.example.skillxchange.backend.repository.LearningPlanRepository;
 import com.example.skillxchange.backend.repository.ProgressUpdateRepository;
 import com.example.skillxchange.backend.repository.UserRepository;
 import com.example.skillxchange.backend.model.User;
+import com.example.skillxchange.backend.service.AchievementService;
 import com.example.skillxchange.backend.service.NotificationPublisher;
 //import com.example.skillxchange.backend.service.NotificationService;
 
@@ -38,6 +39,9 @@ public class LearningPlanController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private AchievementService achievementService;
 
     //create plan
 
@@ -81,6 +85,10 @@ public class LearningPlanController {
         plan.setLearningPeriodInDays(planDto.getLearningPeriodInDays());
 
         learningPlanRepository.save(plan);
+
+        int userPlanCount = (int) learningPlanRepository.countByUserId(user.getId());
+        achievementService.checkAndAwardAchievements(user.getId(), "plan_created", userPlanCount);
+
 
         ProgressUpdate update = saveProgressUpdate(user.getId(), plan.getId(), "CREATE", "Created plan: " + plan.getTitle());
         notificationPublisher.sendPlanNotification(update);
@@ -214,6 +222,26 @@ public class LearningPlanController {
         plan.setTasks(tasks);
 
         learningPlanRepository.save(plan);
+
+        // Count completed tasks in all plans by the user
+        List<LearningPlan> userPlans = learningPlanRepository.findByUserId(plan.getUserId());
+        int completedTaskCount = userPlans.stream()
+            .flatMap(p -> p.getTasks().stream())
+            .filter(Task::isCompleted)
+            .toList()
+            .size();
+
+        achievementService.checkAndAwardAchievements(plan.getUserId(), "task_completed", completedTaskCount);
+
+        // Also check if plan is completed
+        if (allCompleted) {
+            List<LearningPlan> completedPlans = userPlans.stream()
+                .filter(LearningPlan::isCompleted)
+                .toList();
+
+            achievementService.checkAndAwardAchievements(plan.getUserId(), "plan_completed", completedPlans.size());
+        }
+
         return ResponseEntity.ok("Task marked as completed" + (allCompleted ? ". Plan completed!" : ""));
     }
     //mark the task as incomplete

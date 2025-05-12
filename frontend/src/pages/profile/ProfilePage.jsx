@@ -102,7 +102,7 @@ const ProfilePage = () => {
         {/* Centered Profile Info */}
         <div className="text-center">
           <img
-            src={profile.profilePicture || 'https://via.placeholder.com/100'}
+            src={profile.profilePicture || 'https://static.vecteezy.com/system/resources/thumbnails/009/734/564/small/default-avatar-profile-icon-of-social-media-user-vector.jpg'}
             alt="Profile"
             className="rounded-circle"
             style={{ width: '100px', height: '100px', objectFit: 'cover' }}

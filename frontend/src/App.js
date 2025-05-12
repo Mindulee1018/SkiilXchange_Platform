@@ -23,10 +23,10 @@ import UserProfilePage from "./pages/profile/UserProfilePage";
 import 'antd/dist/reset.css';
 import SkillPostUploader from "./pages/SkliiPost/SkillPostUploader";
 import CommentCard from "./pages/comment/CommentCard";
-
 import PublicPlansPage from "./pages/plan/PublicPlansPage";
 import ForYouPage from "./pages/common/ForYouPage";
 import ProgressPage from "./pages/plan/ProgressPage";
+import AchievementsPage from "./pages/plan/AchievementsPage";
 
 function App() {
   const snap = useSnapshot(state); // 👈 Add this line
@@ -51,6 +51,7 @@ function App() {
         <Route path="/plans/public" element={<ProtectedRoute><PublicPlansPage /></ProtectedRoute>} />
         <Route path="/foryou" element={<ProtectedRoute><ForYouPage /></ProtectedRoute>} />
         <Route path="/plans/progress/:planId" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
+        <Route path="/achievements" element={<ProtectedRoute><AchievementsPage /></ProtectedRoute>} />
       </Routes>
 
     
