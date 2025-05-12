@@ -24,7 +24,8 @@ public class progressUpdateController {
 
     // GET /api/ProgressUpdate - Get progress updates (notifications) for logged-in
     // user
-    // GET /api/progress-update - Get progress updates (notifications) for logged-in user
+    // GET /api/progress-update - Get progress updates (notifications) for logged-in
+    // user
     @GetMapping("/ProgressUpdate")
     public ResponseEntity<?> getProgressUpdatesForCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -60,11 +61,46 @@ public class progressUpdateController {
     @GetMapping("/progress/{planId}")
     public ResponseEntity<List<ProgressUpdate>> getProgressByPlanId(@PathVariable String planId) {
         List<ProgressUpdate> updates = progressUpdateRepository.findByPlanId(planId);
-        
+
         if (updates.isEmpty()) {
             return ResponseEntity.status(404).body(null); // No updates found
         }
 
         return ResponseEntity.ok(updates);
     }
+
+    @PatchMapping("/ProgressUpdate/{Id}/mark-read")
+    public ResponseEntity<?> markProgressUpdateAsRead(@PathVariable String id) {
+        ProgressUpdate update = progressUpdateRepository.findById(id).orElse(null);
+
+        if (update == null) {
+            return ResponseEntity.status(404).body("Progress update not found.");
+        }
+
+        update.setRead(true);
+        progressUpdateRepository.save(update);
+
+        return ResponseEntity.ok("Progress update marked as read.");
+    }
+
+    @PatchMapping("/progress-updates/mark-all-read")
+    public ResponseEntity<?> markAllAsReadForCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        List<ProgressUpdate> updates = progressUpdateRepository.findByUserIdOrderByTimestampDesc(user.getId());
+        updates.forEach(update -> {
+            if (!update.isRead()) {
+                update.setRead(true);
+            }
+        });
+        progressUpdateRepository.saveAll(updates);
+        return ResponseEntity.ok("All updates marked as read.");
+    }
+
 }
