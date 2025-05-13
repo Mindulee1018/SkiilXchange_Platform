@@ -1,15 +1,16 @@
 package com.example.skillxchange.backend.controller;
 
+import com.example.skillxchange.backend.model.Comment;
+import com.example.skillxchange.backend.repository.CommentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.skillxchange.backend.model.Comment;
-import com.example.skillxchange.backend.repository.CommentRepository;
-
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://localhost:3000") // Allow requests from React frontend
 @RestController
 @RequestMapping("/api/comments")
 public class CommentController {
@@ -23,21 +24,18 @@ public class CommentController {
         return commentRepository.save(comment);
     }
 
-    // GET: Retrieve all Comments with User details populated
+    // GET: Retrieve all Comments
     @GetMapping
     public List<Comment> getAllComments() {
-        List<Comment> comments = commentRepository.findAll();
-
-        return comments;
+        return commentRepository.findAll();
     }
 
-    // GET: Retrieve a Comment by ID with User details populated
+    // GET: Retrieve a Comment by ID
     @GetMapping("/{id}")
     public ResponseEntity<Comment> getCommentById(@PathVariable String id) {
         Optional<Comment> comment = commentRepository.findById(id);
-        return comment.map(c -> {
-            return ResponseEntity.ok(c);
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+        return comment.map(ResponseEntity::ok)
+                      .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // PUT: Update a Comment by ID
@@ -45,8 +43,6 @@ public class CommentController {
     public ResponseEntity<Comment> updateComment(@PathVariable String id, @RequestBody Comment commentDetails) {
         return commentRepository.findById(id).map(comment -> {
             comment.setCommentText(commentDetails.getCommentText());
-            // Presuming 'text' is a field within your Comment entity.
-            // Add other fields as necessary.
             return ResponseEntity.ok(commentRepository.save(comment));
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -60,10 +56,9 @@ public class CommentController {
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-      @GetMapping("/post/{postId}")
+    // GET: Get comments by postId
+    @GetMapping("/post/{postId}")
     public List<Comment> getCommentsByPostId(@PathVariable String postId) {
-        List<Comment> comments = commentRepository.findByPostId(postId);
-        return comments;
+        return commentRepository.findByPostId(postId);
     }
-
 }

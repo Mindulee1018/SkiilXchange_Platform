@@ -1,30 +1,37 @@
 import React, { useEffect, useState } from "react";
 import { List, Avatar } from "antd";
 import axios from "axios";
-import authService from "../../services/authService";
-//import { BASE_URL } from "../../constants";
-const BASE_URL = 'http://localhost:8080/api/auth';
-
 import state from "../../util/Store";
+// import UserService from "../../services/UserService"; // Uncomment if needed
+
+const BASE_URL = "http://localhost:8080/api/auth";
 
 const CommentCard = ({ comment }) => {
-  const [userData, setUserData] = useState();
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchUserData = async () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
       const config = {
         headers: {
-            Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       };
-      const result = await UserService.getProfileById(comment.userId);
-      const result2 = await axios.get(
-        `${BASE_URL}/users/${result.userId}`,
-        config
-      );      
-      setUserData({ ...result2.data, ...result });
-    } catch (error) {}
+
+      // If you have a UserService with getProfileById:
+      // const result = await UserService.getProfileById(comment.userId);
+      // const result2 = await axios.get(`${BASE_URL}/users/${result.userId}`, config);
+      // setUserData({ ...result2.data, ...result });
+
+      // Simpler direct fetch (if no UserService used)
+      const result = await axios.get(`${BASE_URL}/users/${comment.userId}`, config);
+      setUserData(result.data);
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -91,29 +98,32 @@ const CommentCard = ({ comment }) => {
           margin-top: 6px;
         }
       `}</style>
+
       <List.Item key={comment.id} className="comment-item">
-        {userData && (
-          <div className="comment-container">
-            <Avatar
-              className="comment-avatar"
-              onClick={() => {
+        <div className="comment-container">
+          <Avatar
+            className="comment-avatar"
+            onClick={() => {
+              if (userData) {
                 state.selectedUserProfile = userData;
                 state.friendProfileModalOpened = true;
-              }}
-              src={userData.image}
-              size={40}
-            />
-            <div className="comment-content">
-              <div className="comment-user">{userData.username || "User"}</div>
-              <h4 className="comment-text">{comment.commentText}</h4>
-              {comment.createdAt && (
-                <div className="comment-time">
-                  {new Date(comment.createdAt).toLocaleString()}
-                </div>
-              )}
+              }
+            }}
+            src={userData?.image}
+            size={40}
+          />
+          <div className="comment-content">
+            <div className="comment-user">
+              {loading ? "Loading..." : userData?.username || "Unknown User"}
             </div>
+            <h4 className="comment-text">{comment.commentText}</h4>
+            {comment.createdAt && (
+              <div className="comment-time">
+                {new Date(comment.createdAt).toLocaleString()}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </List.Item>
     </>
   );

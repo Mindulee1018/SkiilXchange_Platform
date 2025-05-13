@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import UserService from "../../services/UserService";
+import axios from "axios";
 import LikeService from "../../services/LikeService";
 import { useSnapshot } from "valtio";
 import state from "../../util/Store";
@@ -30,7 +30,9 @@ import {
 } from "antd";
 import PostService from "../../services/PostService";
 import CommentCard from "../comment/CommentCard";
-// import "./FriendsPost.css"; // Make sure to create this CSS file
+
+
+const BASE_URL = "http://localhost:8080/api/auth";  
 
 const FriendsPost = ({ post }) => {
   const snap = useSnapshot(state);
@@ -44,7 +46,7 @@ const FriendsPost = ({ post }) => {
   const [updatingCommentId, setUpdatingCommentId] = useState();
   const [commentUploading, setCommentUploading] = useState(false);
   const [commentDeleting, setCommentDeleting] = useState(false);
-  const [editFocues, setEditFocused] = useState(false);
+  const [editFocused, setEditFocused] = useState(false);
   const [selectedCommentId, setSelectedCommentId] = useState();
   const [isLiked, setIsLiked] = useState(false);
 
@@ -53,18 +55,27 @@ const FriendsPost = ({ post }) => {
     setIsLiked(userLiked);
   }, [likes, snap.currentUser]);
 
-  // All your existing functions and useEffects...
+  // Fetch user data from API
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/users/${post.userId}`);
+      setUserData(response.data);  // Update user data in state
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  // Fetch likes and comments for the post
+  useEffect(() => {
+    fetchUserData();
+    getLikesRelatedToPost();
+    getCommentsRelatedToPost();
+  }, [post]);
+
   const updatePost = () => {
     state.selectedPost = post;
     state.updatePostModalOpened = true;
   };
-
-  // Add this check near the top of the component
-useEffect(() => {
-  if (!post.id) {
-    console.warn("Post without ID detected:", post);
-  }
-}, [post]);
 
   const menu = (
     <Menu>
@@ -123,18 +134,6 @@ useEffect(() => {
     }
   };
 
-  useEffect(() => {
-    UserService.getProfileById(post.userId)
-      .then((value) => {
-        setUserData(value);
-      })
-      .catch((err) => {
-        console.log(`error getting user data ${err}`);
-      });
-    getLikesRelatedToPost();
-    getCommentsRelatedToPost();
-  }, [post]);
-
   const getLikesRelatedToPost = async () => {
     try {
       const result = await LikeService.getLikesByPostId(post.id);
@@ -172,13 +171,11 @@ useEffect(() => {
 
   const handleUnlike = async () => {
     try {
-      // Find the like associated with the current user and remove it
       const likeToRemove = likes.find(
         (like) => like.userId === snap.currentUser?.uid
       );
       if (likeToRemove) {
         await LikeService.deleteLike(likeToRemove.id);
-        // Refresh likes after successful unlike
         getLikesRelatedToPost();
       }
     } catch (error) {
@@ -219,7 +216,7 @@ useEffect(() => {
   };
 
   return (
-    <div className="">
+    <div>
       <div className="post-header">
         <div className="user-info">
           <Avatar
@@ -344,7 +341,7 @@ useEffect(() => {
             return (
               <Row className="comment-item" key={comment.id}>
                 <Col span={19}>
-                  {editFocues && selectedCommentId === comment.id ? (
+                  {editFocused && selectedCommentId === comment.id ? (
                     <Input
                       defaultValue={comment.commentText}
                       onChange={(e) => {
@@ -371,7 +368,7 @@ useEffect(() => {
                     </List.Item>
                   )}
                 </Col>
-                {editFocues && selectedCommentId === comment.id && (
+                {editFocused && selectedCommentId === comment.id && (
                   <Col span={5} style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
                     <Tooltip title="Save">
                       <Button

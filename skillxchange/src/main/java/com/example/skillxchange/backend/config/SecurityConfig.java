@@ -1,10 +1,6 @@
 package com.example.skillxchange.backend.config;
 
-
-
-// import com.example.skillxchange.backend.config.JwtAuthenticationFilter;
 import com.example.skillxchange.backend.service.OAuth2UserService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,18 +26,18 @@ public class SecurityConfig {
         http
             .securityMatcher("/**")
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**","/api/learning-plans/public/**","/api/learning-plans/public", "/login/oauth2/**", "/oauth2/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/learning-plans/public/**", "/api/learning-plans/public", "/login/oauth2/**", "/oauth2/**").permitAll()
                 .anyRequest().authenticated()
             )
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource))
+            .cors(cors -> cors.configurationSource(corsConfigurationSource)) // Apply CORS configuration
             .formLogin(form -> form.disable())
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
                 .successHandler(oAuth2LoginSuccessHandler)
             );
 
-        // ✅ Add the JWT filter before UsernamePasswordAuthenticationFilter
+        // Add the JWT filter before UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
