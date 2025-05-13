@@ -8,7 +8,7 @@ class CommentService {
   // Create a new Comment
   async createComment(commentData, username, userId) {
   try {
-    const accessToken = localStorage.getItem("accessToken");
+    const accessToken = localStorage.getItem("token");
     if (!accessToken) {
       console.warn("Access token missing.");
       throw new Error("No access token found. Please log in again.");
@@ -54,7 +54,7 @@ class CommentService {
   // Get all comments for a specific post
   async getCommentsByPostId(postId) {
     try {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = localStorage.getItem("token");
       if (!accessToken) {
         throw new Error("No access token found. Please log in again.");
       }
@@ -79,7 +79,7 @@ class CommentService {
   // Update an existing comment
   async updateComment(commentId, commentData) {
     try {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = localStorage.getItem("token");
       if (!accessToken) {
         throw new Error("No access token found. Please log in again.");
       }
@@ -106,7 +106,7 @@ class CommentService {
   // Delete a comment
   async deleteComment(commentId) {
     try {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = localStorage.getItem("token");
       if (!accessToken) {
         throw new Error("No access token found. Please log in again.");
       }
