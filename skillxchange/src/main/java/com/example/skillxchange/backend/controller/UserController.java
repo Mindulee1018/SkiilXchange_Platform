@@ -1,7 +1,14 @@
 package com.example.skillxchange.backend.controller;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,9 +20,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.skillxchange.backend.dto.LoginDTO;
 import com.example.skillxchange.backend.dto.UserDTO;
@@ -83,6 +93,23 @@ public class UserController {
         return ResponseEntity.ok(profile);
     }
 
+    @PutMapping("/user/edit")
+    public ResponseEntity<?> updateUser(@AuthenticationPrincipal UserDetails userDetails,
+                                        @RequestBody UserProfileDTO updatedProfile) {
+        Optional<User> userOpt = userRepository.findByUsername(userDetails.getUsername());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        User user = userOpt.get();
+        user.setUsername(updatedProfile.getUsername());
+        user.setDescription(updatedProfile.getDescription());
+        user.setProfilePicture(updatedProfile.getProfilePicture());
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Profile updated successfully");
+    }
+
     // Get a specific user by ID (for viewing other people's profiles)
     @GetMapping("/users/{id}")
     public ResponseEntity<?> getUserById(@PathVariable String id) {
@@ -102,5 +129,25 @@ public class UserController {
         profile.setFollowing(user.getFollowingIds().size());
 
         return ResponseEntity.ok(profile);
+    }
+
+    @PostMapping("/user/upload/profile-picture")
+    public ResponseEntity<?> uploadProfilePicture(@RequestParam("file") MultipartFile file) {
+        try {
+            String uploadDir = "uploads/profile-pictures/";
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path uploadPath = Paths.get(uploadDir);
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+
+            String imageUrl = "http://localhost:8080/uploads/profile-pictures/" + fileName;
+            return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Upload failed");
+        }
     }
 }

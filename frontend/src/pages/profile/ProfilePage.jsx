@@ -1,6 +1,6 @@
 // pages/auth/ProfilePage.jsx
 import React, { useEffect, useState } from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import { Modal, Button, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import useProfile from '../../hooks/useProfile';
 import NotificationPanel from '../../components/common/NotificationPanel';
@@ -9,8 +9,7 @@ import ProfileSidebar from '../../components/profile/ProfileSidebar';
 import { BsBellFill } from 'react-icons/bs';
 
 const ProfilePage = () => {
-  const { profile, loading, error } = useProfile();
-
+  const { profile, loading, error, refreshProfile } = useProfile();
   const [publicPlans, setPublicPlans] = useState([]);
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
@@ -20,6 +19,14 @@ const ProfilePage = () => {
   const [showProgressUpdates, setShowProgressUpdates] = useState(false);
   const [progressUpdates, setProgressUpdates] = useState([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const [editForm, setEditForm] = useState({
+    username: '',
+    description: '',
+    profilePicture: ''
+  });
 
   const toggleSidebar = () => setIsCollapsed(prev => !prev);
 
@@ -31,6 +38,70 @@ const ProfilePage = () => {
   const toggleProgressUpdates = () => {
     setShowProgressUpdates(prev => !prev);
     setShowNotifications(false);
+  };
+
+  const handleEditClick = () => {
+    setEditForm({
+      username: profile.username || '',
+      description: profile.description || '',
+      profilePicture: profile.profilePicture || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+  
+    try {
+      let uploadedImageUrl = profile.profilePicture;
+  
+      //Upload image file if selected
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+  
+        const uploadRes = await fetch("http://localhost:8080/api/auth/user/upload/profile-picture", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+  
+        if (!uploadRes.ok) throw new Error("Image upload failed");
+  
+        const uploadData = await uploadRes.json();
+        uploadedImageUrl = uploadData.imageUrl;
+      }
+  
+      //Update user profile
+      const res = await fetch("http://localhost:8080/api/auth/user/edit", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...editForm,
+          profilePicture: uploadedImageUrl,
+        }),
+      });
+  
+      if (res.ok) {
+        setShowEditModal(false);
+        refreshProfile();
+      } else {
+        console.error("Profile update failed");
+      }
+    } catch (err) {
+      console.error("Failed to update profile", err);
+    }
   };
 
   const fetchPublicPlans = async () => {
@@ -90,6 +161,10 @@ const ProfilePage = () => {
     }
   };
 
+  const handleFileUpload = (e) => {
+    setSelectedFile(e.target.files[0]);
+  };
+
   useEffect(() => {
     if (profile?.id) {
       fetchPublicPlans();
@@ -133,6 +208,7 @@ const ProfilePage = () => {
                 />
                 <h2 className="mt-3">{profile.username}</h2>
                 <p className="text-muted">{profile.description || 'No description provided.'}</p>
+                <Button variant="outline-info" size="sm" onClick={handleEditClick}>Edit Profile</Button>
               </div>
             </div>
 
@@ -245,6 +321,27 @@ const ProfilePage = () => {
                     ))}
                   </ul>
                 )}
+              </Modal.Body>
+            </Modal>
+            {/* Edit Modal */}
+            <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+              <Modal.Header closeButton><Modal.Title>Edit Profile</Modal.Title></Modal.Header>
+              <Modal.Body>
+                <Form onSubmit={handleEditSubmit}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Username</Form.Label>
+                    <Form.Control name="username" value={editForm.username} onChange={handleEditChange} />
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control name="description" value={editForm.description} onChange={handleEditChange} />
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Profile Picture</Form.Label>
+                    <Form.Control type="file" name="profilePicture" onChange={handleFileUpload} accept="image/*" />
+                  </Form.Group>
+                  <Button type="submit" variant="primary">Save Changes</Button>
+                </Form>
               </Modal.Body>
             </Modal>
           </div>
