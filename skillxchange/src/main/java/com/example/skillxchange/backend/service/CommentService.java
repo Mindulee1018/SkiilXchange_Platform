@@ -44,6 +44,7 @@ public class CommentService {
         comment.setTimestamp(new Date());
 
         // Enrich with user details
+        comment.setUserId(user.getId());
         comment.setUsername(user.getUsername());
         comment.setUserImage(user.getProfilePicture());
 
@@ -63,48 +64,42 @@ public class CommentService {
         return commentOpt;
     }
 
-    // Update an existing comment, only if the authenticated user is the owner
     public Optional<Comment> updateComment(String id, Comment commentDetails) {
-        Optional<Comment> existingCommentOpt = commentRepository.findById(id);
-        if (!existingCommentOpt.isPresent()) {
-            return Optional.empty();
-        }
+    Optional<Comment> existingCommentOpt = commentRepository.findById(id);
+    if (!existingCommentOpt.isPresent()) return Optional.empty();
 
-        Comment existingComment = existingCommentOpt.get();
+    Comment existingComment = existingCommentOpt.get();
 
-        // Get the currently authenticated user from the SecurityContext
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName(); // Get the username from the authenticated user
-
-        // Check if the user is the owner of the comment
-        if (!existingComment.getUsername().equals(username)) {
-            return Optional.empty(); // Unauthorized
-        }
-
-        existingComment.setCommentText(commentDetails.getCommentText());
-        return Optional.of(commentRepository.save(existingComment));
+    String currentUserId = getCurrentUserId();
+    if (!existingComment.getUserId().equals(currentUserId)) {
+        return Optional.empty();
     }
 
-    // Delete a comment, only if the authenticated user is the owner
+    existingComment.setCommentText(commentDetails.getCommentText());
+    Comment updatedComment = commentRepository.save(existingComment);
+
+    enrichWithUsername(updatedComment);
+    return Optional.of(updatedComment);
+    }
+
     public boolean deleteComment(String id) {
         Optional<Comment> existingCommentOpt = commentRepository.findById(id);
-        if (!existingCommentOpt.isPresent()) {
-            return false; // Comment not found
-        }
+        if (!existingCommentOpt.isPresent()) return false;
 
-        Comment existingComment = existingCommentOpt.get();
+        Comment comment = existingCommentOpt.get();
+        String currentUserId = getCurrentUserId();
 
-        // Get the currently authenticated user from the SecurityContext
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName(); // Get the username from the authenticated user
+        if (!comment.getUserId().equals(currentUserId)) return false;
 
-        // Check if the user is the owner of the comment
-        if (!existingComment.getUsername().equals(username)) {
-            return false; // Unauthorized
-        }
+        commentRepository.delete(comment);
+        return true;
+    }
 
-        commentRepository.delete(existingComment);
-        return true; // Comment deleted
+    private String getCurrentUserId() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsername(username)
+                            .map(User::getId)
+                            .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     // Get all comments related to a specific post (sorted by timestamp)
@@ -119,7 +114,7 @@ public class CommentService {
 
     // Private helper method to enrich a single comment with username and profile picture
     private void enrichWithUsername(Comment comment) {
-        Optional<User> userOpt = userRepository.findByUsername(comment.getUsername()); // Fetch based on username
+        Optional<User> userOpt = userRepository.findById(comment.getUserId()); // Fetch based on userid
         userOpt.ifPresent(user -> {
             comment.setUsername(user.getUsername());
             comment.setUserImage(user.getProfilePicture());

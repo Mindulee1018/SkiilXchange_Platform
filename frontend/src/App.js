@@ -52,7 +52,7 @@ function App() {
         <Route path="/plans/public" element={<ProtectedRoute><PublicPlansPage /></ProtectedRoute>} />
         <Route path="/foryou" element={<ProtectedRoute><ForYouPage /></ProtectedRoute>} />
         <Route path="/plans/progress/:planId" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
-        <Route path="/FriendsPost" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>}/>
+        <Route path="/FriendsPost" element={<ProtectedRoute><FriendsPost /></ProtectedRoute>}/>
       </Routes>
 
     

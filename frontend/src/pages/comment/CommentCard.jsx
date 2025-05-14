@@ -1,43 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { List, Avatar } from "antd";
-import axios from "axios";
 import state from "../../util/Store";
-// import UserService from "../../services/UserService"; // Uncomment if needed
-
-const BASE_URL = "http://localhost:8080/api/auth";
 
 const CommentCard = ({ comment }) => {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchUserData = async () => {
-    try {
-      const accessToken = localStorage.getItem("accessToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      };
-
-      // If you have a UserService with getProfileById:
-      // const result = await UserService.getProfileById(comment.userId);
-      // const result2 = await axios.get(`${BASE_URL}/users/${result.userId}`, config);
-      // setUserData({ ...result2.data, ...result });
-
-      // Simpler direct fetch (if no UserService used)
-      const result = await axios.get(`${BASE_URL}/users/${comment.userId}`, config);
-      setUserData(result.data);
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUserData();
-  }, [comment.id]);
-
   return (
     <>
       <style>{`
@@ -104,22 +69,20 @@ const CommentCard = ({ comment }) => {
           <Avatar
             className="comment-avatar"
             onClick={() => {
-              if (userData) {
-                state.selectedUserProfile = userData;
+              if (comment.username) {
+                state.selectedUserProfile = { username: comment.username };
                 state.friendProfileModalOpened = true;
               }
             }}
-            src={userData?.image}
+            src={comment.userImage}
             size={40}
           />
           <div className="comment-content">
-            <div className="comment-user">
-              {loading ? "Loading..." : userData?.username || "Unknown User"}
-            </div>
+            <div className="comment-user">{comment.username || "Unknown User"}</div>
             <h4 className="comment-text">{comment.commentText}</h4>
-            {comment.createdAt && (
+            {comment.timestamp && (
               <div className="comment-time">
-                {new Date(comment.createdAt).toLocaleString()}
+                {new Date(comment.timestamp).toLocaleString()}
               </div>
             )}
           </div>
