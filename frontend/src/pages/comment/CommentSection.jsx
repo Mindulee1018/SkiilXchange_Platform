@@ -62,16 +62,14 @@ const CommentSection = ({ open, onClose, post }) => {
         setCommentAdding(true);
         const body = {
           postId: post.id,
-          userId: snap.currentUser?.uid,
           commentText: comment,
         };
-        await CommentService.createComment(body, snap.currentUser?.username, snap.currentUser?.uid);
+        await CommentService.createComment(body);
         setComment("");  // Clear input after sending the comment
 
         // Optimistically update the comments list
         const newComment = {
           postId: post.id,
-          userId: snap.currentUser?.uid,
           commentText: comment,
         };
         setComments([...comments, newComment]);
@@ -84,6 +82,7 @@ const CommentSection = ({ open, onClose, post }) => {
       }
     }
   };
+  
 
   const updateComment = async (id) => {
     if (updatingCommentText.trim()) {
@@ -186,26 +185,32 @@ const CommentSection = ({ open, onClose, post }) => {
                 span={5}
                 style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}
               >
-                <Tooltip title="Save">
-                  <Button
-                    type="primary"
-                    icon={<EditOutlined />}
-                    onClick={() => updateComment(comment.id)}
-                    loading={commentUploading}
-                  />
-                </Tooltip>
-                <Popconfirm
-                  title="Are you sure you want to delete this comment?"
-                  onConfirm={() => deleteComment(comment.id)}
-                  okText="Yes"
-                  cancelText="No"
-                >
-                  <Button
-                    danger
-                    icon={<DeleteOutlined />}
-                    loading={commentDeleting}
-                  />
-                </Popconfirm>
+                {snap.currentUser?.id === comment.userId && (
+                  <>
+                    <Tooltip title="Save">
+                      <Button
+                        type="primary"
+                        icon={<EditOutlined />}
+                        onClick={() => updateComment(comment.id)}
+                        loading={commentUploading}
+                      />
+                    </Tooltip>
+                    <Popconfirm
+                      title="Are you sure you want to delete this comment?"
+                      onConfirm={() => deleteComment(comment.id)}
+                      okText="Yes"
+                      cancelText="No"
+                    >
+                      <Tooltip title="Delete">
+                        <Button
+                          danger
+                          icon={<DeleteOutlined />}
+                          loading={commentDeleting}
+                        />
+                      </Tooltip>
+                    </Popconfirm>
+                  </>
+                )}
               </Col>
             )}
           </Row>

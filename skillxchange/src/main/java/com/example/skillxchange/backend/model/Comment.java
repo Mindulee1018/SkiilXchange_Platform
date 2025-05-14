@@ -1,22 +1,39 @@
 package com.example.skillxchange.backend.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 
 @Document(collection = "comments")
 public class Comment {
+
     @Id
     private String id;
     private String postId;
-    private String userId;
     private String commentText;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private Date timestamp;
 
+    @Transient
+    private String username;
 
+    @Transient
+    private String userImage;
 
     public Comment() {}
 
+    public Comment(String id, String postId, String commentText, Date timestamp) {
+        this.id = id;
+        this.postId = postId;
+        this.commentText = commentText;
+        this.timestamp = timestamp;
+    }
+
+    // Getters and Setters
     public String getId() {
         return id;
     }
@@ -31,14 +48,6 @@ public class Comment {
 
     public void setPostId(String postId) {
         this.postId = postId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public String getCommentText() {
@@ -57,16 +66,24 @@ public class Comment {
         this.timestamp = timestamp;
     }
 
-    public Comment(String id, String postId, String userId, String commentText, Date timestamp) {
-        this.id = id;
-        this.postId = postId;
-        this.userId = userId;
-        this.commentText = commentText;
-        this.timestamp = timestamp;
+    public String getUsername() {
+        return username;
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
+    public String getUserImage() {
+        return userImage;
+    }
 
+    public void setUserImage(String userImage) {
+        this.userImage = userImage;
+    }
 
+    @Override
+    public String toString() {
+        return "Comment{id='" + id + "', postId='" + postId + "', commentText='" + commentText + "', timestamp=" + timestamp + ", username='" + username + "'}";
+    }
 }
-
