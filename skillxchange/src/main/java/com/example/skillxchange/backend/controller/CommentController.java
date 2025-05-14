@@ -1,59 +1,112 @@
 package com.example.skillxchange.backend.controller;
 
 import com.example.skillxchange.backend.model.Comment;
-import com.example.skillxchange.backend.service.CommentService;
+import com.example.skillxchange.backend.model.User;
+import com.example.skillxchange.backend.repository.CommentRepository;
+import com.example.skillxchange.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "[http://localhost:3000](http://localhost:3000)")
 @RestController
 @RequestMapping("/api/comments")
 public class CommentController {
 
-    @Autowired
-    private CommentService commentService;
+@Autowired
+private CommentRepository commentRepository;
 
-    // Create a new Comment
-    @PostMapping
-    public ResponseEntity<Comment> createComment(@RequestBody Comment request) {
-        Comment savedComment = commentService.createComment(request);
-        return ResponseEntity.ok(savedComment);
+@Autowired
+private UserRepository userRepository;
+
+// ✅ POST: Create a new Comment with userId set automatically
+@PostMapping
+public ResponseEntity<Comment> createComment(@RequestBody Comment request) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String username = authentication.getName();
+
+    Optional<User> userOpt = userRepository.findByUsername(username);
+    if (!userOpt.isPresent()) {
+        return ResponseEntity.status(401).build();
     }
 
-    // Get all comments
-    @GetMapping
-    public ResponseEntity<List<Comment>> getAllComments() {
-        return ResponseEntity.ok(commentService.getAllComments());
+    User user = userOpt.get();
+
+    if (request.getPostId() == null || request.getCommentText() == null || request.getCommentText().trim().isEmpty()) {
+        return ResponseEntity.badRequest().build();
     }
 
-    // Get a comment by ID
-    @GetMapping("/{id}")
-    public ResponseEntity<Comment> getCommentById(@PathVariable String id) {
-        Optional<Comment> comment = commentService.getCommentById(id);
-        return comment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-    }
+    Comment comment = new Comment();
+    comment.setUserId(user.getId());
+    comment.setPostId(request.getPostId());
+    comment.setCommentText(request.getCommentText());
+    comment.setTimestamp(new java.util.Date());
 
-    // Update a comment (only by the owner)
-    @PutMapping("/{id}")
-    public ResponseEntity<Comment> updateComment(@PathVariable String id, @RequestBody Comment commentDetails) {
-        Optional<Comment> updatedComment = commentService.updateComment(id, commentDetails);
-        return updatedComment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(403).build()); // Forbidden
-    }
+    Comment saved = commentRepository.save(comment);
+    return ResponseEntity.ok(saved);
+}
 
-    // Delete a comment (only by the owner)
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteComment(@PathVariable String id) {
-        boolean deleted = commentService.deleteComment(id);
-        return deleted ? ResponseEntity.ok().build() : ResponseEntity.status(403).build(); // Forbidden if not the owner
-    }
+@GetMapping
+public List<Comment> getAllComments() {
+    List<Comment> comments = commentRepository.findAll();
+    enrichWithUserDetails(comments);
+    return comments;
+}
 
-    // Get comments by postId
-    @GetMapping("/post/{postId}")
-    public ResponseEntity<List<Comment>> getCommentsByPostId(@PathVariable String postId) {
-        return ResponseEntity.ok(commentService.getCommentsByPostId(postId));
+@GetMapping("/{id}")
+public ResponseEntity<Comment> getCommentById(@PathVariable String id) {
+    Optional<Comment> comment = commentRepository.findById(id);
+    if (comment.isPresent()) {
+        Optional<User> user = userRepository.findById(comment.get().getUserId());
+        if (user.isPresent()) {
+            comment.get().setUsername(user.get().getUsername());
+            comment.get().setUserImage(user.get().getProfilePicture());
+        }
+        return ResponseEntity.ok(comment.get());
+    }
+    return ResponseEntity.notFound().build();
+}
+
+@PutMapping("/{id}")
+public ResponseEntity<Comment> updateComment(@PathVariable String id, @RequestBody Comment commentDetails) {
+    return commentRepository.findById(id).map(comment -> {
+        comment.setCommentText(commentDetails.getCommentText());
+        return ResponseEntity.ok(commentRepository.save(comment));
+    }).orElseGet(() -> ResponseEntity.notFound().build());
+}
+
+@DeleteMapping("/{id}")
+public ResponseEntity<?> deleteComment(@PathVariable String id) {
+    return commentRepository.findById(id).map(comment -> {
+        commentRepository.delete(comment);
+        return ResponseEntity.ok().build();
+    }).orElseGet(() -> ResponseEntity.notFound().build());
+}
+
+@GetMapping("/post/{postId}")
+public List<Comment> getCommentsByPostId(@PathVariable String postId) {
+    List<Comment> comments = commentRepository.findByPostId(postId);
+    enrichWithUserDetails(comments);
+    return comments;
+}
+
+private void enrichWithUserDetails(List<Comment> comments) {
+    for (Comment comment : comments) {
+        Optional<User> user = userRepository.findById(comment.getUserId());
+        if (user.isPresent()) {
+            comment.setUsername(user.get().getUsername());
+            comment.setUserImage(user.get().getProfilePicture());
+        } else {
+            comment.setUsername("Unknown User");
+            comment.setUserImage("defaultProfilePic.jpg");
+        }
     }
 }
+
+
+}   
