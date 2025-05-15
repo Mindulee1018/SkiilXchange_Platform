@@ -9,6 +9,7 @@ import Navbar from "../../components/common/navbar";
 import ProfileSidebar from "../../components/profile/ProfileSidebar";
 import { BsBellFill } from "react-icons/bs";
 import axios from "axios";
+import Form from 'react-bootstrap/Form';
 
 const ProfilePage = () => {
   const { profile, loading, error, refreshProfile } = useProfile();
@@ -286,9 +287,6 @@ const ProfilePage = () => {
                   }}
                 />
                 <h2 className="mt-3">{profile.username}</h2>
-                <p className="text-muted">
-                  {profile.description || "No description provided."}
-                </p>
 
                 <p className="text-muted">{profile.description || 'No description provided.'}</p>
                 <Button variant="outline-info" size="sm" onClick={handleEditClick}>Edit Profile</Button>
