@@ -7,22 +7,23 @@ const useProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await authService.getProfile();
-        setProfile(data);
-      } catch (err) {
-        setError('Failed to load profile');
-      } finally {
-        setLoading(false);
-      }
-    };
 
+  const fetchProfile = async () => {
+    try {
+      const data = await authService.getProfile();
+      setProfile(data);
+    } catch (err) {
+      setError('Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProfile();
   }, []);
 
-  return { profile, loading, error };
+  return { profile, loading, error,refreshProfile: fetchProfile };
 };
 
 export default useProfile;
