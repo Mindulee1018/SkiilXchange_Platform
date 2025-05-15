@@ -207,7 +207,7 @@ const ProfilePage = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/api/ProgressUpdate/user/${userId}/mark-all-read`,
+        `http://localhost:8080/api/progress-updates/mark-all-read`,
         {
           method: "PATCH",
           headers: {
@@ -321,8 +321,9 @@ const ProfilePage = () => {
               show={showProgressUpdates}
               onHide={toggleProgressUpdates}
               dialogClassName="modal-right-side"
-              backdrop={false}
+              backdrop={true}
               keyboard={true}
+              style={{marginTop: "80px"}}
             >
               <Modal.Header closeButton>
                 <Modal.Title>Progress Updates</Modal.Title>
@@ -444,11 +445,34 @@ const ProfilePage = () => {
                         </h6>
                         <p className="card-text">{plan.description}</p>
                         <div className="text-muted small">
-                          {plan.tags?.map((tag, i) => (
-                            <span key={i} className="badge bg-secondary me-1">
-                              {tag}
-                            </span>
-                          ))}
+                          {plan.tags?.map((tag, i) => {
+                            const customColors = [
+                              '#6f42c1', // purple
+                              '#20c997', // teal
+                              '#fd7e14', // orange
+                              '#0dcaf0', // cyan
+                              '#d63384', // pink
+                              '#ffc107', // yellow
+                              '#198754', // green
+                              '#0d6efd'  // blue
+                            ];
+                            const bgColor = customColors[i % customColors.length];
+
+                            return (
+                              <span
+                                key={i}
+                                className="badge me-1"
+                                style={{
+                                  backgroundColor: bgColor,
+                                  color: 'white',
+                                  padding: '0.5em 0.75em',
+                                  fontSize: '0.80rem'
+                                }}
+                              >
+                                {tag}
+                              </span>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -507,41 +531,24 @@ const ProfilePage = () => {
               </Modal.Body>
             </Modal>
 
-            {/* Edit Profile Modal */}
+            {/* Edit Modal */}
             <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
-              <Modal.Header closeButton>
-                <Modal.Title>Edit Profile</Modal.Title>
-              </Modal.Header>
+              <Modal.Header closeButton><Modal.Title>Edit Profile</Modal.Title></Modal.Header>
               <Modal.Body>
                 <Form onSubmit={handleEditSubmit}>
                   <Form.Group className="mb-3">
                     <Form.Label>Username</Form.Label>
-                    <Form.Control
-                      name="username"
-                      value={editForm.username}
-                      onChange={handleEditChange}
-                    />
+                    <Form.Control name="username" value={editForm.username} onChange={handleEditChange} />
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>Description</Form.Label>
-                    <Form.Control
-                      name="description"
-                      value={editForm.description}
-                      onChange={handleEditChange}
-                    />
+                    <Form.Control name="description" value={editForm.description} onChange={handleEditChange} />
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>Profile Picture</Form.Label>
-                    <Form.Control
-                      type="file"
-                      name="profilePicture"
-                      onChange={handleFileUpload}
-                      accept="image/*"
-                    />
+                    <Form.Control type="file" name="profilePicture" onChange={handleFileUpload} accept="image/*" />
                   </Form.Group>
-                  <Button type="submit" variant="primary">
-                    Save Changes
-                  </Button>
+                  <Button type="submit" variant="primary">Save Changes</Button>
                 </Form>
               </Modal.Body>
             </Modal>
