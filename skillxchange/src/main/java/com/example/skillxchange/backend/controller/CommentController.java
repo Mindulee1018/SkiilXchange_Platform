@@ -1,69 +1,68 @@
 package com.example.skillxchange.backend.controller;
 
+import com.example.skillxchange.backend.model.Comment;
+import com.example.skillxchange.backend.model.User;
+import com.example.skillxchange.backend.repository.CommentRepository;
+import com.example.skillxchange.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import com.example.skillxchange.backend.model.Comment;
-import com.example.skillxchange.backend.repository.CommentRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.example.skillxchange.backend.service.CommentService;
 
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/comments")
+@CrossOrigin(origins = "http://localhost:3000")
 public class CommentController {
 
     @Autowired
-    private CommentRepository commentRepository;
+    private CommentService commentService;
 
-    // POST: Create a new Comment
     @PostMapping
-    public Comment createComment(@RequestBody Comment comment) {
-        return commentRepository.save(comment);
+    public ResponseEntity<Comment> createComment(@RequestBody Comment request) {
+        if (request.getPostId() == null || request.getCommentText() == null || request.getCommentText().trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            Comment saved = commentService.createComment(request);
+            return ResponseEntity.ok(saved);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(401).build();
+        }
     }
 
-    // GET: Retrieve all Comments with User details populated
     @GetMapping
     public List<Comment> getAllComments() {
-        List<Comment> comments = commentRepository.findAll();
-
-        return comments;
+        return commentService.getAllComments();
     }
 
-    // GET: Retrieve a Comment by ID with User details populated
     @GetMapping("/{id}")
     public ResponseEntity<Comment> getCommentById(@PathVariable String id) {
-        Optional<Comment> comment = commentRepository.findById(id);
-        return comment.map(c -> {
-            return ResponseEntity.ok(c);
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+        return commentService.getCommentById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // PUT: Update a Comment by ID
     @PutMapping("/{id}")
     public ResponseEntity<Comment> updateComment(@PathVariable String id, @RequestBody Comment commentDetails) {
-        return commentRepository.findById(id).map(comment -> {
-            comment.setCommentText(commentDetails.getCommentText());
-            // Presuming 'text' is a field within your Comment entity.
-            // Add other fields as necessary.
-            return ResponseEntity.ok(commentRepository.save(comment));
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+        return commentService.updateComment(id, commentDetails)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(403).build());
     }
 
-    // DELETE: Delete a Comment by ID
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteComment(@PathVariable String id) {
-        return commentRepository.findById(id).map(comment -> {
-            commentRepository.delete(comment);
-            return ResponseEntity.ok().build();
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+        return commentService.deleteComment(id)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.status(403).build();
     }
 
-      @GetMapping("/post/{postId}")
+    @GetMapping("/post/{postId}")
     public List<Comment> getCommentsByPostId(@PathVariable String postId) {
-        List<Comment> comments = commentRepository.findByPostId(postId);
-        return comments;
+        return commentService.getCommentsByPostId(postId);
     }
-
 }

@@ -1,6 +1,7 @@
 import axios from "axios";
-import NotificationService from "./NotificationService";
-import authService from "../../services/authService";
+//import NotificationService from "./NotificationService";
+import authService from "./authService";
+
 
 class LikeService {
   async getLikesByPostId(postId) {
@@ -18,7 +19,7 @@ class LikeService {
     }
   }
 
-  async createLike(likeData, username, userId) {
+ async createLike(likeData, username, userId) {
     try {
       const accessToken = localStorage.getItem("accessToken");
       const config = {
@@ -27,7 +28,7 @@ class LikeService {
         },
       };
       const response = await axios.post(`${BASE_URL}/likes`, likeData, config);
-      if (response.status === 201) {
+      /*if (response.status === 201) {
         try {
           const body = {
             userId: userId,
@@ -38,7 +39,7 @@ class LikeService {
           await NotificationService.createNotification(body);
         } catch (error) {}
       }
-      return response.data;
+      return response.data;*/
     } catch (error) {
       throw new Error("Failed to create like");
     }
