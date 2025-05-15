@@ -106,11 +106,34 @@ const Dashboard = () => {
                       <h6 className="card-subtitle mb-2 text-muted">{plan.skill}</h6>
                       <p className="card-text">{plan.description}</p>
                       <div className="text-muted small">
-                        {plan.tags?.map((tag, i) => (
-                          <span key={i} className="badge bg-secondary me-1">
-                            {tag}
-                          </span>
-                        ))}
+                        {plan.tags?.map((tag, i) => {
+                          const customColors = [
+                            '#6f42c1', // purple
+                            '#20c997', // teal
+                            '#fd7e14', // orange
+                            '#0dcaf0', // cyan
+                            '#d63384', // pink
+                            '#ffc107', // yellow
+                            '#198754', // green
+                            '#0d6efd'  // blue
+                          ];
+                          const bgColor = customColors[i % customColors.length];
+
+                          return (
+                            <span
+                              key={i}
+                              className="badge me-1"
+                              style={{
+                                backgroundColor: bgColor,
+                                color: 'white',
+                                padding: '0.5em 0.75em',
+                                fontSize: '0.80rem'
+                              }}
+                            >
+                              {tag}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
