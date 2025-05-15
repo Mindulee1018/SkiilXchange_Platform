@@ -162,7 +162,9 @@ const PlanViewPage = () => {
 
   return (
     <>
-      <Navbar />
+      <div className="fixed-top bg-white shadow-sm">
+        <Navbar />
+      </div>
       <div className="container mt-5">
         <div className="d-flex justify-content-between align-items-center">
   
