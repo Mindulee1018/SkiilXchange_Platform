@@ -10,6 +10,32 @@ const ProgressPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Helper to detect completed task messages
+  const isTaskCompletedMessage = (message) =>
+    message && message.toLowerCase().includes('complete');
+
+  const getIcon = (type, message) => {
+    if (isTaskCompletedMessage(message)) return '✅';
+    switch (type) {
+      case 'STARTED': return '🚀';
+      case 'UPDATE': return '🔄';
+      case 'COMPLETE': return '✅';
+      case 'END': return '🏁';
+      default: return '📌';
+    }
+  };
+
+  const getColorClass = (type, message) => {
+    if (isTaskCompletedMessage(message)) return 'bg-success';
+    switch (type) {
+      case 'STARTED': return 'bg-primary';
+      case 'UPDATE': return 'bg-warning';
+      case 'COMPLETE': return 'bg-info';
+      case 'END': return 'bg-success';
+      default: return 'bg-secondary';
+    }
+  };
+
   useEffect(() => {
     const fetchUpdates = async () => {
       try {
@@ -25,6 +51,7 @@ const ProgressPage = () => {
         }
 
         const data = await res.json();
+        console.log('Progress updates:', data);  // Debug: check your data here
         setUpdates(data);
       } catch (error) {
         setError(error.message);
@@ -37,34 +64,6 @@ const ProgressPage = () => {
     fetchUpdates();
   }, [planId]);
 
-  const getIcon = (type) => {
-    switch (type) {
-      case 'START':
-        return '🚀';
-      case 'UPDATE':
-        return '🔄';
-      case 'COMPLETE':
-      case 'END':
-        return '✅';
-      default:
-        return '📌';
-    }
-  };
-
-  const getColorClass = (type) => {
-    switch (type) {
-      case 'START':
-        return 'bg-primary';
-      case 'UPDATE':
-        return 'bg-warning';
-      case 'COMPLETE':
-      case 'END':
-        return 'bg-success';
-      default:
-        return 'bg-secondary';
-    }
-  };
-
   if (loading) return <div className="container mt-5">Loading progress updates...</div>;
 
   return (
@@ -73,7 +72,7 @@ const ProgressPage = () => {
         <Navbar />
       </div>
       <div className="container mt-5">
-        <h2>Progress Timeline</h2>
+        <h2 className="pt-5">Progress Timeline</h2>
         {error && <div className="alert alert-danger">{error}</div>}
 
         {updates.length === 0 ? (
@@ -82,11 +81,11 @@ const ProgressPage = () => {
           <ul className="timeline">
             {updates.map((update) => (
               <li className="timeline-item" key={update._id}>
-                <div className={`timeline-icon ${getColorClass(update.type)}`}>
-                  {getIcon(update.type)}
+                <div className={`timeline-icon ${getColorClass(update.type, update.message)}`}>
+                  {getIcon(update.type, update.message)}
                 </div>
                 <div className="timeline-content">
-                  <h5>{update.type}</h5>
+                  <h5>{isTaskCompletedMessage(update.message) ? 'Task Completed' : update.type}</h5>
                   <p>{update.message}</p>
                   <small className="text-muted">{new Date(update.timestamp).toLocaleString()}</small>
                 </div>

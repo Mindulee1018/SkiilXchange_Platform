@@ -104,6 +104,22 @@ const PlanViewPage = () => {
         if (updated.ok) {
           const data = await updated.json();
           setPlan(data);
+
+          const task = data.tasks[taskIndex];
+
+          // Send progress update
+          await fetch(`http://localhost:8080/api/ProgressUpdate`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              learningPlanId: id,
+              message: `Task "${task.title}" in plan "${data.title}" has been completed.`,
+              type: 'UPDATE',
+            }),
+          });
         }
       } else {
         console.error('Failed to mark task complete');
@@ -167,7 +183,7 @@ const PlanViewPage = () => {
       </div>
       <div className="container mt-5">
         <div className="d-flex justify-content-between align-items-center">
-  
+
           <h2>
             {plan.title}
             {plan.completed && <span className="badge bg-success ms-3">✅ Plan Completed</span>}
