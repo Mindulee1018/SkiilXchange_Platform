@@ -8,6 +8,7 @@ import NotificationPanel from "../../components/common/NotificationPanel";
 import Navbar from "../../components/common/navbar";
 import ProfileSidebar from "../../components/profile/ProfileSidebar";
 import { BsBellFill } from "react-icons/bs";
+import { BsGraphUp } from "react-icons/bs";
 import axios from "axios";
 import Form from "react-bootstrap/Form";
 
@@ -25,6 +26,7 @@ const ProfilePage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [progressTab, setProgressTab] = React.useState("unread"); // 'unread' or 'all'
+  const unreadCount = progressUpdates.filter((update) => !update.read).length;
 
   const [editForm, setEditForm] = useState({
     username: "",
@@ -207,7 +209,7 @@ const ProfilePage = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/api/progress-updates/mark-all-read`,
+        `http://localhost:8080/api/ProgressUpdate/mark-all-read`,
         {
           method: "PATCH",
           headers: {
@@ -266,12 +268,33 @@ const ProfilePage = () => {
             <div className="position-relative mb-4">
               {/* Notification Buttons - Top Right on large, stacked on mobile */}
               <div className="d-flex justify-content-end flex-wrap gap-2 mb-2 mt-4">
-                <button
+                {/* <button
                   onClick={toggleProgressUpdates}
                   className="btn btn-outline-success"
                 >
                   Progress Updates
+                  {unreadCount > 0 && (
+                    <span
+                      className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                      style={{ fontSize: "0.7rem" }}
+                    >
+                      {unreadCount}
+                    </span>
+                  )}
+                </button> */}
+
+                <button
+                  onClick={toggleProgressUpdates}
+                  className="btn btn-outline-success position-relative d-flex align-items-center"
+                >
+                  <BsGraphUp className="me-2" /> {/* Bootstrap icon from react-icons */}
+                  {unreadCount > 0 && (
+                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                      {unreadCount}
+                    </span>
+                  )}
                 </button>
+                
                 <button
                   onClick={toggleNotifications}
                   className="btn btn-outline-warning"

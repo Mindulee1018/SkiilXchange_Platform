@@ -83,7 +83,7 @@ public class progressUpdateController {
         return ResponseEntity.ok("Progress update marked as read.");
     }
 
-    @PatchMapping("/progress-updates/mark-all-read")
+    @PatchMapping("/ProgressUpdate/mark-all-read")
     public ResponseEntity<?> markAllAsReadForCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
