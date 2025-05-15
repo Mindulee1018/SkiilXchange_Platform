@@ -69,7 +69,9 @@ const ProgressPage = () => {
 
   return (
     <>
-      <Navbar />
+      <div className="fixed-top bg-white shadow-sm">
+        <Navbar />
+      </div>
       <div className="container mt-5">
         <h2>Progress Timeline</h2>
         {error && <div className="alert alert-danger">{error}</div>}

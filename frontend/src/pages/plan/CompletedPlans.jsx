@@ -25,7 +25,9 @@ const CompletedPlansPage = () => {
 
   return (
     <>
-      <Navbar />
+      <div className="fixed-top bg-white shadow-sm">
+        <Navbar />
+      </div>
       <div className="container mt-5">
         <h2>Completed Plans</h2>
         {plans.length === 0 ? (

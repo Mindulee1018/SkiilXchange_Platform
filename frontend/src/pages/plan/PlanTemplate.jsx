@@ -150,7 +150,9 @@ const PlanTemplate = () => {
 
   return (
     <>
-      <Navbar />
+      <div className="fixed-top bg-white shadow-sm">
+        <Navbar />
+      </div>
       <div className="container mt-5">
       <h2>{isEdit ? 'Edit' : 'Create'} Learning Plan</h2>
 

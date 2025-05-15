@@ -76,11 +76,6 @@ const Navbar = () => {
             </Link>
           </li>
           <li className="nav-item">
-            <Link className="nav-link" to="/progresspage">
-              Progress Page
-            </Link>
-          </li>
-          <li className="nav-item">
             <Link className="nav-link" to="/mypost">
               Your Posts
             </Link>

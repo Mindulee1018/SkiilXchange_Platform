@@ -9,7 +9,7 @@ import Navbar from "../../components/common/navbar";
 import ProfileSidebar from "../../components/profile/ProfileSidebar";
 import { BsBellFill } from "react-icons/bs";
 import axios from "axios";
-import Form from 'react-bootstrap/Form';
+import Form from "react-bootstrap/Form";
 
 const ProfilePage = () => {
   const { profile, loading, error, refreshProfile } = useProfile();
@@ -24,11 +24,12 @@ const ProfilePage = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [progressTab, setProgressTab] = React.useState("unread"); // 'unread' or 'all'
 
   const [editForm, setEditForm] = useState({
-    username: '',
-    description: '',
-    profilePicture: ''
+    username: "",
+    description: "",
+    profilePicture: "",
   });
 
   const toggleSidebar = () => setIsCollapsed((prev) => !prev);
@@ -45,44 +46,47 @@ const ProfilePage = () => {
 
   const handleEditClick = () => {
     setEditForm({
-      username: profile.username || '',
-      description: profile.description || '',
-      profilePicture: profile.profilePicture || ''
+      username: profile.username || "",
+      description: profile.description || "",
+      profilePicture: profile.profilePicture || "",
     });
     setShowEditModal(true);
   };
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    setEditForm(prev => ({ ...prev, [name]: value }));
+    setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
-  
+    const token = localStorage.getItem("token");
+
     try {
       let uploadedImageUrl = profile.profilePicture;
-  
+
       //Upload image file if selected
       if (selectedFile) {
         const formData = new FormData();
         formData.append("file", selectedFile);
-  
-        const uploadRes = await fetch("http://localhost:8080/api/auth/user/upload/profile-picture", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        });
-  
+
+        const uploadRes = await fetch(
+          "http://localhost:8080/api/auth/user/upload/profile-picture",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          }
+        );
+
         if (!uploadRes.ok) throw new Error("Image upload failed");
-  
+
         const uploadData = await uploadRes.json();
         uploadedImageUrl = uploadData.imageUrl;
       }
-  
+
       //Update user profile
       const res = await fetch("http://localhost:8080/api/auth/user/edit", {
         method: "PUT",
@@ -95,7 +99,7 @@ const ProfilePage = () => {
           profilePicture: uploadedImageUrl,
         }),
       });
-  
+
       if (res.ok) {
         setShowEditModal(false);
         refreshProfile();
@@ -203,7 +207,7 @@ const ProfilePage = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/api/ProgressUpdate/user/${userId}/mark-all-read`,
+        `http://localhost:8080/api/progress-updates/mark-all-read`,
         {
           method: "PATCH",
           headers: {
@@ -242,21 +246,26 @@ const ProfilePage = () => {
 
   return (
     <>
-      <Navbar />
-      <div className="container-fluid mt-5 px-0">
+      <div className="fixed-top bg-white shadow-sm">
+        <Navbar />
+      </div>
+      <div className="container-fluid mt-5 px-2 px-md-4">
         <div className="row">
           {/* Sidebar */}
-          <div className="col-md-3 mb-4">
-            <ProfileSidebar
-              isCollapsed={isCollapsed}
-              toggleCollapse={toggleSidebar}
-            />
+          <div className="col-12 col-md-3 mb-4">
+            <div className="position-sticky" style={{ top: "85px" }}>
+              <ProfileSidebar
+                isCollapsed={isCollapsed}
+                toggleCollapse={toggleSidebar}
+              />
+            </div>
           </div>
 
-          <div className="col-md-9">
+          {/* Main Content */}
+          <div className="col-12 col-md-9">
             <div className="position-relative mb-4">
-              {/* Top-Right Notification Buttons */}
-              <div className="position-absolute top-0 end-0 d-flex gap-2">
+              {/* Notification Buttons - Top Right on large, stacked on mobile */}
+              <div className="d-flex justify-content-end flex-wrap gap-2 mb-2 mt-4">
                 <button
                   onClick={toggleProgressUpdates}
                   className="btn btn-outline-success"
@@ -287,78 +296,121 @@ const ProfilePage = () => {
                   }}
                 />
                 <h2 className="mt-3">{profile.username}</h2>
-
-                <p className="text-muted">{profile.description || 'No description provided.'}</p>
-                <Button variant="outline-info" size="sm" onClick={handleEditClick}>Edit Profile</Button>
-
+                <p className="text-muted">
+                  {profile.description || "No description provided."}
+                </p>
+                <Button
+                  variant="outline-info"
+                  size="sm"
+                  onClick={handleEditClick}
+                >
+                  Edit Profile
+                </Button>
               </div>
             </div>
 
             {/* Notification Panel */}
             {showNotifications && (
-              <div
-                className="mt-2 bg-white shadow-lg rounded-lg w-100"
-                style={{ maxWidth: "300px" }}
-              >
+              <div className="mt-2 bg-white shadow-lg rounded-lg w-100 mb-3">
                 <NotificationPanel />
               </div>
             )}
 
             {/* Progress Updates Panel */}
-            {showProgressUpdates && (
-              <div
-                className="mt-2 bg-white shadow-lg rounded-lg w-100"
-                style={{ maxWidth: "300px" }}
-              >
-                <div className="p-3">
-                  <h6>Progress Updates</h6>
-                  {progressUpdates.length === 0 ? (
-                    <p>No progress updates yet.</p>
-                  ) : (
-                    <>
+            <Modal
+              show={showProgressUpdates}
+              onHide={toggleProgressUpdates}
+              dialogClassName="modal-right-side"
+              backdrop={true}
+              keyboard={true}
+              style={{marginTop: "80px"}}
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>Progress Updates</Modal.Title>
+              </Modal.Header>
+              <Modal.Body style={{ maxHeight: "60vh", overflowY: "auto" }}>
+                {progressUpdates.length === 0 ? (
+                  <p>No progress updates yet.</p>
+                ) : (
+                  <>
+                    <button
+                      className="btn btn-sm btn-success mb-3"
+                      onClick={markAllAsRead}
+                    >
+                      Mark All as Read
+                    </button>
+
+                    {/* Tabs */}
+                    <div className="mb-3">
                       <button
-                        className="btn btn-sm btn-success mb-2"
-                        onClick={markAllAsRead}
+                        className={`btn btn-sm me-2 ${
+                          progressTab === "unread"
+                            ? "btn-primary"
+                            : "btn-outline-primary"
+                        }`}
+                        onClick={() => setProgressTab("unread")}
                       >
-                        Mark All as Read
+                        Unread
                       </button>
-                      <ul className="list-group">
-                        {progressUpdates.map((update) => (
-                          <li
-                            key={update.id}
-                            className={`list-group-item small ${
-                              update.read ? "bg-light" : "bg-white"
-                            }`}
-                          >
-                            {update.message ||
-                              `${update.planTitle} - Day ${update.dayCompleted} completed`}
-                            <br />
-                            <small className="text-muted">
-                              {new Date(update.timestamp).toLocaleString()}
-                            </small>
-                            <br />
-                            <strong>Status:</strong>{" "}
-                            {update.read ? "Read" : "Unread"}
-                            <br />
-                            {!update.read && (
-                              <button
-                                className="btn btn-sm btn-primary mt-1"
-                                onClick={() => markAsRead(update.id)}
-                              >
-                                Mark as Read
-                              </button>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
+                      <button
+                        className={`btn btn-sm ${
+                          progressTab === "all"
+                            ? "btn-primary"
+                            : "btn-outline-primary"
+                        }`}
+                        onClick={() => setProgressTab("all")}
+                      >
+                        All
+                      </button>
+                    </div>
+
+                    {/* Progress Updates List */}
+                    <ul className="list-group">
+                      {(progressTab === "unread"
+                        ? progressUpdates.filter((update) => !update.read)
+                        : progressUpdates
+                      ).map((update) => (
+                        <li
+                          key={update.id}
+                          className={`list-group-item small ${
+                            update.read ? "bg-light" : "bg-white"
+                          }`}
+                        >
+                          {update.message ||
+                            `${update.planTitle} - Day ${update.dayCompleted} completed`}
+                          <br />
+                          <small className="text-muted">
+                            {new Date(update.timestamp).toLocaleString()}
+                          </small>
+                          <br />
+                          <strong>Status:</strong>{" "}
+                          {update.read ? "Read" : "Unread"}
+                          <br />
+                          {!update.read && (
+                            <button
+                              className="btn btn-sm btn-primary mt-1"
+                              onClick={() => markAsRead(update.id)}
+                            >
+                              Mark as Read
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                      {progressTab === "unread" &&
+                        progressUpdates.filter((update) => !update.read)
+                          .length === 0 && <p>No unread updates.</p>}
+                      {progressTab === "all" &&
+                        progressUpdates.length === 0 && (
+                          <p>No progress updates.</p>
+                        )}
+                    </ul>
+                  </>
+                )}
+              </Modal.Body>
+            </Modal>
 
             {/* Followers & Following Buttons */}
-            <div className="d-flex justify-content-center gap-3 mt-2">
+            <div className="d-flex justify-content-center flex-wrap gap-2 mt-2 mb-3">
               <Button
                 variant="outline-primary"
                 size="sm"
@@ -384,7 +436,7 @@ const ProfilePage = () => {
             ) : (
               <div className="row">
                 {publicPlans.map((plan) => (
-                  <div key={plan.id} className="col-md-6 mb-4">
+                  <div key={plan.id} className="col-12 col-sm-6 mb-4">
                     <div className="card h-100 shadow-sm">
                       <div className="card-body">
                         <h5 className="card-title">{plan.title}</h5>
@@ -393,11 +445,34 @@ const ProfilePage = () => {
                         </h6>
                         <p className="card-text">{plan.description}</p>
                         <div className="text-muted small">
-                          {plan.tags?.map((tag, i) => (
-                            <span key={i} className="badge bg-secondary me-1">
-                              {tag}
-                            </span>
-                          ))}
+                          {plan.tags?.map((tag, i) => {
+                            const customColors = [
+                              '#6f42c1', // purple
+                              '#20c997', // teal
+                              '#fd7e14', // orange
+                              '#0dcaf0', // cyan
+                              '#d63384', // pink
+                              '#ffc107', // yellow
+                              '#198754', // green
+                              '#0d6efd'  // blue
+                            ];
+                            const bgColor = customColors[i % customColors.length];
+
+                            return (
+                              <span
+                                key={i}
+                                className="badge me-1"
+                                style={{
+                                  backgroundColor: bgColor,
+                                  color: 'white',
+                                  padding: '0.5em 0.75em',
+                                  fontSize: '0.80rem'
+                                }}
+                              >
+                                {tag}
+                              </span>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -455,6 +530,7 @@ const ProfilePage = () => {
                 )}
               </Modal.Body>
             </Modal>
+
             {/* Edit Modal */}
             <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
               <Modal.Header closeButton><Modal.Title>Edit Profile</Modal.Title></Modal.Header>
