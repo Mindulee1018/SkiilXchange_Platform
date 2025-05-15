@@ -69,7 +69,7 @@ public class progressUpdateController {
         return ResponseEntity.ok(updates);
     }
 
-    @PatchMapping("/ProgressUpdate/{Id}/mark-read")
+    @PatchMapping("/ProgressUpdate/{id}/mark-read")
     public ResponseEntity<?> markProgressUpdateAsRead(@PathVariable String id) {
         ProgressUpdate update = progressUpdateRepository.findById(id).orElse(null);
 
