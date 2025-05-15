@@ -301,7 +301,7 @@ public class LearningPlanController {
         plan.setStarted(true);
         learningPlanRepository.save(plan);
 
-        ProgressUpdate update = saveProgressUpdate(user.getId(), plan.getId(), "START", "Started plan: " + plan.getTitle());
+        ProgressUpdate update = saveProgressUpdate(user.getId(), plan.getId(), "STARTED", "Started plan: " + plan.getTitle());
         notificationPublisher.sendPlanNotification(update);
 
         return ResponseEntity.ok("Plan started successfully");
