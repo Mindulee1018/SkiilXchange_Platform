@@ -67,18 +67,6 @@ const PlanViewPage = () => {
           setPlan(data);
         }
 
-        // WebSocket notification
-        if (window.socket && window.socket.readyState === WebSocket.OPEN) {
-          window.socket.send(
-            JSON.stringify({
-              type: 'PLAN_STARTED',
-              planId: id,
-              title: plan.title,
-              message: `You have started the plan: ${plan.title}`,
-            })
-          );
-        }
-
         // Save to ProgressUpdate
         await fetch(`http://localhost:8080/api/ProgressUpdate`, {
           method: 'POST',
@@ -220,13 +208,13 @@ const PlanViewPage = () => {
 
         <hr />
 
-        {!started && (
+        {!plan.started && (
           <button className="btn btn-success my-3" onClick={handleStartPlan}>
             Start Plan
           </button>
         )}
 
-        {started && (
+        {plan.started && (
           <>
             <div className="progress my-3">
               <div

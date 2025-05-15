@@ -1,12 +1,14 @@
 // pages/auth/ProfilePage.jsx
-import React, { useEffect, useState } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import useProfile from '../../hooks/useProfile';
-import NotificationPanel from '../../components/common/NotificationPanel';
-import Navbar from '../../components/common/navbar';
-import ProfileSidebar from '../../components/profile/ProfileSidebar';
-import { BsBellFill } from 'react-icons/bs';
+
+import React, { useEffect, useState } from "react";
+import { Modal, Button } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import useProfile from "../../hooks/useProfile";
+import NotificationPanel from "../../components/common/NotificationPanel";
+import Navbar from "../../components/common/navbar";
+import ProfileSidebar from "../../components/profile/ProfileSidebar";
+import { BsBellFill } from "react-icons/bs";
+import axios from "axios";
 
 const ProfilePage = () => {
   const { profile, loading, error, refreshProfile } = useProfile();
@@ -28,15 +30,15 @@ const ProfilePage = () => {
     profilePicture: ''
   });
 
-  const toggleSidebar = () => setIsCollapsed(prev => !prev);
+  const toggleSidebar = () => setIsCollapsed((prev) => !prev);
 
   const toggleNotifications = () => {
-    setShowNotifications(prev => !prev);
+    setShowNotifications((prev) => !prev);
     setShowProgressUpdates(false);
   };
 
   const toggleProgressUpdates = () => {
-    setShowProgressUpdates(prev => !prev);
+    setShowProgressUpdates((prev) => !prev);
     setShowNotifications(false);
   };
 
@@ -106,58 +108,119 @@ const ProfilePage = () => {
 
   const fetchPublicPlans = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:8080/api/learning-plans/user/public', {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        "http://localhost:8080/api/learning-plans/user/public",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
       if (res.ok) {
         const data = await res.json();
         setPublicPlans(data);
       }
     } catch (err) {
-      console.error('Error fetching public plans', err);
+      console.error("Error fetching public plans", err);
     }
   };
 
   const fetchFollowersAndFollowing = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const userId = profile?.id;
 
       if (userId) {
-        const followersRes = await fetch(`http://localhost:8080/api/users/${userId}/followers`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const followingRes = await fetch(`http://localhost:8080/api/users/${userId}/following`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const followersRes = await fetch(
+          `http://localhost:8080/api/users/${userId}/followers`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const followingRes = await fetch(
+          `http://localhost:8080/api/users/${userId}/following`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (followersRes.ok) setFollowersList(await followersRes.json());
         if (followingRes.ok) setFollowingList(await followingRes.json());
       }
     } catch (err) {
-      console.error('Error fetching followers/following', err);
+      console.error("Error fetching followers/following", err);
     }
   };
 
   const fetchProgressUpdates = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:8080/api/progress-updates/notifications', {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:8080/api/ProgressUpdate", {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       if (res.ok) {
         const data = await res.json();
         setProgressUpdates(data);
       } else {
-        console.error('Failed to fetch progress updates');
+        console.error("Failed to fetch progress updates");
       }
     } catch (err) {
-      console.error('Error fetching progress updates', err);
+      console.error("Error fetching progress updates", err);
+    }
+  };
+
+  const markAsRead = async (updateId) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.patch(
+        `http://localhost:8080/api/ProgressUpdate/${updateId}/mark-read`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        // Optionally refresh the updates list here
+        fetchProgressUpdates(); // make sure this function is defined
+      }
+    } catch (error) {
+      console.error("Error marking update as read", error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    const token = localStorage.getItem("token");
+    const userId = profile?.id;
+    if (!userId || !token) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/ProgressUpdate/user/${userId}/mark-all-read`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        setProgressUpdates((prevUpdates) =>
+          prevUpdates.map((update) => ({ ...update, read: true }))
+        );
+      } else {
+        console.error("Failed to mark all as read");
+      }
+    } catch (error) {
+      console.error("Error:", error);
     }
   };
 
@@ -183,17 +246,26 @@ const ProfilePage = () => {
         <div className="row">
           {/* Sidebar */}
           <div className="col-md-3 mb-4">
-            <ProfileSidebar isCollapsed={isCollapsed} toggleCollapse={toggleSidebar} />
+            <ProfileSidebar
+              isCollapsed={isCollapsed}
+              toggleCollapse={toggleSidebar}
+            />
           </div>
 
           <div className="col-md-9">
             <div className="position-relative mb-4">
               {/* Top-Right Notification Buttons */}
               <div className="position-absolute top-0 end-0 d-flex gap-2">
-                <button onClick={toggleProgressUpdates} className="btn btn-outline-success">
+                <button
+                  onClick={toggleProgressUpdates}
+                  className="btn btn-outline-success"
+                >
                   Progress Updates
                 </button>
-                <button onClick={toggleNotifications} className="btn btn-outline-warning">
+                <button
+                  onClick={toggleNotifications}
+                  className="btn btn-outline-warning"
+                >
                   <BsBellFill />
                 </button>
               </div>
@@ -201,43 +273,87 @@ const ProfilePage = () => {
               {/* Centered Profile Info */}
               <div className="text-center">
                 <img
-                  src={profile.profilePicture || 'https://static.vecteezy.com/system/resources/thumbnails/009/734/564/small/default-avatar-profile-icon-of-social-media-user-vector.jpg'}
+                  src={
+                    profile.profilePicture ||
+                    "https://static.vecteezy.com/system/resources/thumbnails/009/734/564/small/default-avatar-profile-icon-of-social-media-user-vector.jpg"
+                  }
                   alt="Profile"
                   className="rounded-circle"
-                  style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                  style={{
+                    width: "100px",
+                    height: "100px",
+                    objectFit: "cover",
+                  }}
                 />
                 <h2 className="mt-3">{profile.username}</h2>
+                <p className="text-muted">
+                  {profile.description || "No description provided."}
+                </p>
+
                 <p className="text-muted">{profile.description || 'No description provided.'}</p>
                 <Button variant="outline-info" size="sm" onClick={handleEditClick}>Edit Profile</Button>
+
               </div>
             </div>
 
             {/* Notification Panel */}
             {showNotifications && (
-              <div className="mt-2 bg-white shadow-lg rounded-lg w-100" style={{ maxWidth: '300px' }}>
+              <div
+                className="mt-2 bg-white shadow-lg rounded-lg w-100"
+                style={{ maxWidth: "300px" }}
+              >
                 <NotificationPanel />
               </div>
             )}
 
             {/* Progress Updates Panel */}
             {showProgressUpdates && (
-              <div className="mt-2 bg-white shadow-lg rounded-lg w-100" style={{ maxWidth: '300px' }}>
+              <div
+                className="mt-2 bg-white shadow-lg rounded-lg w-100"
+                style={{ maxWidth: "300px" }}
+              >
                 <div className="p-3">
                   <h6>Progress Updates</h6>
                   {progressUpdates.length === 0 ? (
                     <p>No progress updates yet.</p>
                   ) : (
-                    <ul className="list-group">
-                      {progressUpdates.map(update => (
-                        <li key={update.id} className="list-group-item small">
-                          {update.message || `${update.planTitle} - Day ${update.dayCompleted} completed`}
-                          <br />
-                          <small className="text-muted">
-                            {new Date(update.timestamp).toLocaleString()}
-                          </small>
-                        </li>
-                      ))}
-                    </ul>
+                    <>
+                      <button
+                        className="btn btn-sm btn-success mb-2"
+                        onClick={markAllAsRead}
+                      >
+                        Mark All as Read
+                      </button>
+                      <ul className="list-group">
+                        {progressUpdates.map((update) => (
+                          <li
+                            key={update.id}
+                            className={`list-group-item small ${
+                              update.read ? "bg-light" : "bg-white"
+                            }`}
+                          >
+                            {update.message ||
+                              `${update.planTitle} - Day ${update.dayCompleted} completed`}
+                            <br />
+                            <small className="text-muted">
+                              {new Date(update.timestamp).toLocaleString()}
+                            </small>
+                            <br />
+                            <strong>Status:</strong>{" "}
+                            {update.read ? "Read" : "Unread"}
+                            <br />
+                            {!update.read && (
+                              <button
+                                className="btn btn-sm btn-primary mt-1"
+                                onClick={() => markAsRead(update.id)}
+                              >
+                                Mark as Read
+                              </button>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
                   )}
                 </div>
               </div>
@@ -245,10 +361,18 @@ const ProfilePage = () => {
 
             {/* Followers & Following Buttons */}
             <div className="d-flex justify-content-center gap-3 mt-2">
-              <Button variant="outline-primary" size="sm" onClick={() => setShowFollowers(true)}>
+              <Button
+                variant="outline-primary"
+                size="sm"
+                onClick={() => setShowFollowers(true)}
+              >
                 Followers ({profile.followers})
               </Button>
-              <Button variant="outline-secondary" size="sm" onClick={() => setShowFollowing(true)}>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={() => setShowFollowing(true)}
+              >
                 Following ({profile.following})
               </Button>
             </div>
@@ -261,16 +385,20 @@ const ProfilePage = () => {
               <p>You have no public plans yet.</p>
             ) : (
               <div className="row">
-                {publicPlans.map(plan => (
+                {publicPlans.map((plan) => (
                   <div key={plan.id} className="col-md-6 mb-4">
                     <div className="card h-100 shadow-sm">
                       <div className="card-body">
                         <h5 className="card-title">{plan.title}</h5>
-                        <h6 className="card-subtitle mb-2 text-muted">{plan.skill}</h6>
+                        <h6 className="card-subtitle mb-2 text-muted">
+                          {plan.skill}
+                        </h6>
                         <p className="card-text">{plan.description}</p>
                         <div className="text-muted small">
                           {plan.tags?.map((tag, i) => (
-                            <span key={i} className="badge bg-secondary me-1">{tag}</span>
+                            <span key={i} className="badge bg-secondary me-1">
+                              {tag}
+                            </span>
                           ))}
                         </div>
                       </div>
@@ -292,7 +420,10 @@ const ProfilePage = () => {
                   <ul className="list-group">
                     {followersList.map((follower, index) => (
                       <li key={index} className="list-group-item">
-                        <Link to={`/user/${follower.id}`} className="text-decoration-none">
+                        <Link
+                          to={`/user/${follower.id}`}
+                          className="text-decoration-none"
+                        >
                           {follower.username}
                         </Link>
                       </li>
@@ -314,7 +445,10 @@ const ProfilePage = () => {
                   <ul className="list-group">
                     {followingList.map((user, index) => (
                       <li key={index} className="list-group-item">
-                        <Link to={`/user/${user.id}`} className="text-decoration-none">
+                        <Link
+                          to={`/user/${user.id}`}
+                          className="text-decoration-none"
+                        >
                           {user.username}
                         </Link>
                       </li>
