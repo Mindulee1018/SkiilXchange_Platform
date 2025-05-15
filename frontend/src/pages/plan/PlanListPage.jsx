@@ -104,8 +104,8 @@ const PlanListPage = () => {
         <Navbar />
       </div>
       <div className="container mt-5">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2>Your Learning Plans</h2>
+        <div className="d-flex justify-content-between align-items-center mb-4 mt-4">
+          <h2 className="mt-5">Your Learning Plans</h2>
           <button className="btn btn-success" onClick={() => navigate('/plans/create')}>
             + New Plan
           </button>
