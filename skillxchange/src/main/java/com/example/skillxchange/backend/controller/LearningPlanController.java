@@ -95,6 +95,7 @@ public class LearningPlanController {
 
         return ResponseEntity.ok(plan);
     }
+
     //get all plans
     @GetMapping("/learning-plans")
     public ResponseEntity<?> getUserLearningPlans() {
@@ -108,6 +109,7 @@ public class LearningPlanController {
 
         return ResponseEntity.ok(learningPlanRepository.findByUserId(user.getId()));
     }
+
     //get plan by id
     @GetMapping("/learning-plans/{id}")
     public ResponseEntity<?> getPlanById(@PathVariable String id) {
@@ -115,6 +117,7 @@ public class LearningPlanController {
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).body("Plan not found"));
     }
+
     //delete learning plan
     @DeleteMapping("/learning-plans/{id}")
     public ResponseEntity<?> deleteLearningPlan(@PathVariable String id) {
@@ -143,6 +146,7 @@ public class LearningPlanController {
 
         return ResponseEntity.ok("Learning plan deleted successfully");
     }
+    
     //update learning plan
     @PutMapping("/learning-plans/{id}")
     public ResponseEntity<?> updateLearningPlan(@PathVariable String id, @RequestBody @Valid LearningPlanDTO updatedPlan) {
@@ -178,12 +182,14 @@ public class LearningPlanController {
 
         return ResponseEntity.ok(plan);
     }
+    
     //get plans by tag
     @GetMapping("/learning-plans/tag/{tag}")
     public ResponseEntity<?> getPlansByTag(@PathVariable String tag) {
         List<LearningPlan> plans = learningPlanRepository.findByTagsContainingIgnoreCase(tag);
         return ResponseEntity.ok(plans);
     }
+    
     //get all public plans
     @GetMapping("/learning-plans/public")
     public ResponseEntity<?> getPublicPlans() {
@@ -196,6 +202,7 @@ public class LearningPlanController {
         return ResponseEntity.ok(
                 learningPlanRepository.findByIsPublicTrueAndTagsContainingIgnoreCase(tag));
     }
+    
     //mark task as complete
     @PatchMapping("/learning-plans/{planId}/tasks/{taskIndex}/complete")
     public ResponseEntity<?> markTaskCompleted(@PathVariable String planId, @PathVariable int taskIndex) {
@@ -218,10 +225,15 @@ public class LearningPlanController {
         // Check if all tasks are completed
         boolean allCompleted = tasks.stream().allMatch(Task::isCompleted);
         plan.setCompleted(allCompleted);
-
-        plan.setTasks(tasks);
+        //plan.setTasks(tasks);
 
         learningPlanRepository.save(plan);
+
+        String userId = plan.getUserId();
+        String message = "Completed task: " + task.getTitle() + " in plan: " + plan.getTitle();
+        ProgressUpdate update = new ProgressUpdate(userId, plan.getId(), "UPDATE", message);
+        progressUpdateRepository.save(update);
+        notificationPublisher.sendPlanNotification(update);
 
         // Count completed tasks in all plans by the user
         List<LearningPlan> userPlans = learningPlanRepository.findByUserId(plan.getUserId());
@@ -241,9 +253,9 @@ public class LearningPlanController {
 
             achievementService.checkAndAwardAchievements(plan.getUserId(), "plan_completed", completedPlans.size());
         }
-
         return ResponseEntity.ok("Task marked as completed" + (allCompleted ? ". Plan completed!" : ""));
     }
+    
     //mark the task as incomplete
     @PatchMapping("/learning-plans/{planId}/tasks/{taskIndex}/incomplete")
     public ResponseEntity<?> markTaskIncomplete(@PathVariable String planId, @PathVariable int taskIndex) {
