@@ -1,21 +1,23 @@
 package com.example.skillxchange.backend.service;
 
 import com.example.skillxchange.backend.model.SkillPost;
+import com.example.skillxchange.backend.model.Notification;
 import com.example.skillxchange.backend.repository.SkillPostRepository;
-//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class SkillPostService {
 
     private final SkillPostRepository postRepository;
+    private final NotificationPostService notificationService;
 
-    
-    
-    public SkillPostService(SkillPostRepository postRepository) {
+    public SkillPostService(SkillPostRepository postRepository, NotificationPostService notificationService) {
         this.postRepository = postRepository;
+        this.notificationService = notificationService;
     }
 
     public List<SkillPost> getAllPosts() {
@@ -27,7 +29,18 @@ public class SkillPostService {
     }
 
     public SkillPost createPost(SkillPost post) {
-        return postRepository.save(post);
+        SkillPost savedPost = postRepository.save(post);
+
+        // ✅ Create notification (dummy recipient for testing)
+        Notification notification = new Notification();
+        notification.setId(UUID.randomUUID().toString());
+        notification.setRecipientUserId("dummyUser123"); // 🔁 Replace with real follower logic later
+        notification.setSenderUserId(post.getUserId());
+        notification.setPostId(savedPost.getId());
+        notification.setMessage("User " + post.getUserId() + " created a new post.");
+        notificationService.createNotification(notification);
+
+        return savedPost;
     }
 
     public Optional<SkillPost> getPostById(String postId) {
