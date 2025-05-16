@@ -2,16 +2,26 @@ import axios from "axios";
 //import NotificationService from "./NotificationService";
 import authService from "./authService";
 
+const BASE_URL = "http://localhost:8080/api";
+
 
 class LikeService {
+   // Helper method to get the config with Authorization header
+  getConfig() {
+    const accessToken = localStorage.getItem("token");
+    if (!accessToken) {
+      throw new Error("No access token found. Please log in again.");
+    }
+    return {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    };
+  }
+
   async getLikesByPostId(postId) {
     try {
-      const accessToken = localStorage.getItem("accessToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      };
+      const config = this.getConfig();
       const response = await axios.get(`${BASE_URL}/likes/${postId}`, config);
       return response.data;
     } catch (error) {
@@ -19,15 +29,10 @@ class LikeService {
     }
   }
 
- async createLike(likeData, username, userId) {
+ async createLike({ postId }) {
     try {
-      const accessToken = localStorage.getItem("accessToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      };
-      const response = await axios.post(`${BASE_URL}/likes`, likeData, config);
+      const config = this.getConfig();
+      const response = await axios.post(`${BASE_URL}/likes/${postId}`,null,config);
       /*if (response.status === 201) {
         try {
           const body = {
@@ -38,26 +43,22 @@ class LikeService {
 
           await NotificationService.createNotification(body);
         } catch (error) {}
-      }
-      return response.data;*/
+      }*/
+      return response.data;
     } catch (error) {
       throw new Error("Failed to create like");
     }
   }
 
-  async deleteLike(likeId) {
-    try {
-      const accessToken = localStorage.getItem("accessToken");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      };
-      await axios.delete(`${BASE_URL}/likes/${likeId}`, config);
-    } catch (error) {
-      throw new Error("Failed to delete like");
-    }
+  async deleteLikeByPostId(postId) {
+  try {
+    const config = this.getConfig();
+    await axios.delete(`${BASE_URL}/likes/post/${postId}`, config);
+  } catch (error) {
+    throw new Error("Failed to delete like");
   }
+}
+
 }
 
 export default new LikeService();

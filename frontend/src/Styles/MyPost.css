@@ -14,4 +14,21 @@
     padding: 20px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     margin-bottom: 20px;
-  }
+}
+
+.interaction-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: #555;
+}
+
+.interaction-button.liked {
+    color: #1890ff; /* or whatever color you want for liked */
+}
+
+.interaction-button:hover {
+    opacity: 0.8;
+}
