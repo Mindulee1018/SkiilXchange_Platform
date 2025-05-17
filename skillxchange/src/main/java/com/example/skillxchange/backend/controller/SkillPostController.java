@@ -7,12 +7,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -120,5 +124,29 @@ public class SkillPostController {
         return optionalPost
                 .map(existing -> ResponseEntity.ok(postService.updatePost(existing, updatedPost)))
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    @GetMapping("/foryou")
+    public ResponseEntity<?> getForYouPosts(@AuthenticationPrincipal UserDetails userDetails) {
+        Optional<User> userOpt = userRepository.findByUsername(userDetails.getUsername());
+        if (userOpt.isEmpty()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+
+        User user = userOpt.get();
+
+        // Posts by followed users
+        List<SkillPost> followedUserPosts = postService.getPostsByUserIds(user.getFollowingIds());
+
+        // Recent public posts (assuming all posts are public for now)
+        List<SkillPost> recentPosts = postService.getRecentPosts(); // implement this
+
+        // Combine and remove duplicates
+        Set<SkillPost> combined = new LinkedHashSet<>();
+        combined.addAll(followedUserPosts);
+        combined.addAll(recentPosts);
+
+        // Remove user's own posts
+        combined.removeIf(post -> post.getUserId().equals(user.getId()));
+
+        return ResponseEntity.ok(combined);
     }
 }
