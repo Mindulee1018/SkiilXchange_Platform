@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
+
 const ProfileSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
 

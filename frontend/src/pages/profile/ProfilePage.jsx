@@ -45,6 +45,8 @@ const ProfilePage = () => {
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const snap = useSnapshot(state);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [userSettings, setUserSettings] = useState(null);
+
   const [editForm, setEditForm] = useState({
     username: "",
     description: "",
@@ -294,10 +296,10 @@ const ProfilePage = () => {
     const userId = profile?.id;
 
     if (!userId) {
-    console.error("User ID is not available");
-    return;
-  }
-  
+      console.error("User ID is not available");
+      return;
+    }
+
     try {
       const response = await axios.patch(
         `http://localhost:8080/api/deadlines/user/${userId}/mark-completed/${deadlineId}`,
@@ -344,20 +346,20 @@ const ProfilePage = () => {
   // };
 
   const fetchUserPosts = async (userId) => {
-  try {
-    const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:8080/api/posts/user/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (!res.ok) throw new Error("Failed to fetch posts");
-    const posts = await res.json();
-    setUserPosts(posts);
-  } catch (err) {
-    console.error("Error loading posts:", err);
-  }
-};
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:8080/api/posts/user/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Failed to fetch posts");
+      const posts = await res.json();
+      setUserPosts(posts);
+    } catch (err) {
+      console.error("Error loading posts:", err);
+    }
+  };
 
-const handleEditPost = (post) => {
+  const handleEditPost = (post) => {
     state.selectedPost = post;
     state.editPostModalOpened = true;
   };
@@ -384,6 +386,26 @@ const handleEditPost = (post) => {
     setSelectedFile(e.target.files[0]);
   };
 
+  const fetchUserSettings = async (userId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:8080/api/settings/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUserSettings(data);
+      } else {
+        console.error("Failed to fetch user settings");
+      }
+    } catch (err) {
+      console.error("Error fetching user settings", err);
+    }
+  };
+
 
   useEffect(() => {
     if (profile?.id) {
@@ -393,8 +415,30 @@ const handleEditPost = (post) => {
       fetchUserPosts(profile.id);
       fetchDeadlines(profile.id);
       fetchNotifications(profile.id);
+      fetchUserSettings(profile.id);
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (userSettings && profile?.id) {
+      // fetchPublicPlans();
+      // fetchFollowersAndFollowing();
+      // fetchUserPosts(profile.id);
+
+      // Conditionally fetch based on settings
+      if (userSettings.progressUpdateNotifications) {
+        fetchProgressUpdates();
+      }
+
+      if (userSettings.deadlineNotifications) {
+        fetchDeadlines(profile.id);
+      }
+
+      if (userSettings.commentNotifications || userSettings.likeNotifications) {
+        fetchNotifications(profile.id);
+      }
+    }
+  }, [userSettings]);
 
   if (loading) return <div className="container mt-5">Loading profile...</div>;
   if (error) return <div className="container mt-5">{error}</div>;
@@ -422,43 +466,47 @@ const handleEditPost = (post) => {
 
               <div className="d-flex justify-content-end flex-wrap gap-2 mb-2 mt-4">
                 {/* Progress Update Button */}
-                <button
-                  onClick={toggleProgressUpdates}
-                  className="btn btn-outline-success position-relative d-flex align-items-center me-2"
-                >
-                  <BsGraphUp /> {/* Bootstrap icon from react-icons */}
-                  {unreadCount > 0 && (
-                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
+                {userSettings?.progressUpdateNotifications && (
+                  <button
+                    onClick={toggleProgressUpdates}
+                    className="btn btn-outline-success position-relative me-2"
+                  >
+                    <BsGraphUp />
+                    {unreadCount > 0 && (
+                      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                )}
 
                 {/* Deadlines Button */}
-                <button
-                  onClick={toggleDeadlines}
-                  className="btn btn-outline-danger position-relative d-flex align-items-center me-2"
-                >
-                  ⏰
-                  {deadlines.length > 0 && (
-                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                      {deadlines.length}
-                    </span>
-                  )}
-                </button>
+                {userSettings?.deadlineNotifications && (
+                  <button
+                    onClick={toggleDeadlines}
+                    className="btn btn-outline-danger position-relative me-2"
+                  >
+                    ⏰
+                    {deadlines.length > 0 && (
+                      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {deadlines.length}
+                      </span>
+                    )}
+                  </button>
+
+                )}
 
                 {/* Notifications Button */}
-                <button
-                  onClick={toggleNotifications}
-                  className="btn btn-outline-warning position-relative d-flex align-items-center"
-                >
-                  <BsBellFill />
-                  {notifications.length > 0 && (
-                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                      {notifications.length}
-                    </span>
-                  )}
-                </button>
+                {(userSettings?.commentNotifications || userSettings?.likeNotifications) && (
+                  <button onClick={toggleNotifications} className="btn btn-outline-warning">
+                    <BsBellFill />
+                    {notifications.length > 0 && (
+                      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {notifications.length}
+                      </span>
+                    )}
+                  </button>
+                )}
               </div>
 
               {/* Centered Profile Info */}
@@ -664,30 +712,29 @@ const handleEditPost = (post) => {
                       ).map((deadline) => {
                         console.log("Full deadline object:", JSON.stringify(deadline, null, 2));
 
-                        return(
-                        <li
-                          key={deadline.id}
-                          className={`list-group-item small ${deadline.completed ? "bg-light" : "bg-white"}`}
-                        >
-                          <strong>{deadline.taskTitle || "Unnamed Task"}</strong>
-                          <br />
-                          <small className="text-muted">
-                            Due: {new Date(deadline.dueDate).toLocaleString()}
-                          </small>
-                          <br />
-                          <strong>Status:</strong> {deadline.completed ? "Completed" : "Pending"}
-                          {!deadline.completed && (
-                            <div className="mt-1">
-                              <button
-                                className="btn btn-sm btn-danger"
-                                onClick={() => markDeadlineAsCompleted(deadline.id)}
-                              >
-                                Mark as Complete
-                              </button>
-                            </div>
-                          )}
-                        </li>
-
+                        return (
+                          <li
+                            key={deadline.id}
+                            className={`list-group-item small ${deadline.completed ? "bg-light" : "bg-white"}`}
+                          >
+                            <strong>{deadline.taskTitle || "Unnamed Task"}</strong>
+                            <br />
+                            <small className="text-muted">
+                              Due: {new Date(deadline.dueDate).toLocaleString()}
+                            </small>
+                            <br />
+                            <strong>Status:</strong> {deadline.completed ? "Completed" : "Pending"}
+                            {!deadline.completed && (
+                              <div className="mt-1">
+                                <button
+                                  className="btn btn-sm btn-danger"
+                                  onClick={() => markDeadlineAsCompleted(deadline.id)}
+                                >
+                                  Mark as Complete
+                                </button>
+                              </div>
+                            )}
+                          </li>
                         );
                       })}
 
@@ -723,72 +770,132 @@ const handleEditPost = (post) => {
             <hr />
 
             <div className="d-flex justify-content-center mt-4 mb-3">
-            <button
-              className={`btn btn-sm mx-2 ${activeTab === "plans" ? "btn-primary" : "btn-outline-primary"}`}
-              onClick={() => setActiveTab("plans")}
-            >
-              Learning Plans
-            </button>
-            <button
-              className={`btn btn-sm mx-2 ${activeTab === "posts" ? "btn-primary" : "btn-outline-primary"}`}
-              onClick={() => setActiveTab("posts")}
-            >
-              Skill Posts
-            </button>
-          </div>
+              <button
+                className={`btn btn-sm mx-2 ${activeTab === "plans" ? "btn-primary" : "btn-outline-primary"}`}
+                onClick={() => setActiveTab("plans")}
+              >
+                Learning Plans
+              </button>
+              <button
+                className={`btn btn-sm mx-2 ${activeTab === "posts" ? "btn-primary" : "btn-outline-primary"}`}
+                onClick={() => setActiveTab("posts")}
+              >
+                Skill Posts
+              </button>
+            </div>
 
             {/* Public Learning Plans */}
             {activeTab === "plans" && (
-            <>  
-            <h4 className="mb-3">Your Public Learning Plans</h4>
-            {publicPlans.length === 0 ? (
-              <p>You have no public plans yet.</p>
-            ) : (
-              <div className="row">
-                {publicPlans.map((plan) => (
-                  <div key={plan.id} className="col-12 col-sm-6 mb-4">
-                    <div className="card h-100 shadow-sm">
-                      <div className="card-body">
-                        <h5 className="card-title">{plan.title}</h5>
-                        <h6 className="card-subtitle mb-2 text-muted">
-                          {plan.skill}
-                        </h6>
-                        <p className="card-text">{plan.description}</p>
-                        <div className="text-muted small">
-                          {plan.tags?.map((tag, i) => {
-                            const customColors = [
-                              '#6f42c1', // purple
-                              '#20c997', // teal
-                              '#fd7e14', // orange
-                              '#0dcaf0', // cyan
-                              '#d63384', // pink
-                              '#ffc107', // yellow
-                              '#198754', // green
-                              '#0d6efd'  // blue
-                            ];
-                            const bgColor = customColors[i % customColors.length];
+              <>
+                <h4 className="mb-3">Your Public Learning Plans</h4>
+                {publicPlans.length === 0 ? (
+                  <p>You have no public plans yet.</p>
+                ) : (
+                  <div className="row">
+                    {publicPlans.map((plan) => (
+                      <div key={plan.id} className="col-12 col-sm-6 mb-4">
+                        <div className="card h-100 shadow-sm">
+                          <div className="card-body">
+                            <h5 className="card-title">{plan.title}</h5>
+                            <h6 className="card-subtitle mb-2 text-muted">
+                              {plan.skill}
+                            </h6>
+                            <p className="card-text">{plan.description}</p>
+                            <div className="text-muted small">
+                              {plan.tags?.map((tag, i) => {
+                                const customColors = [
+                                  '#6f42c1', // purple
+                                  '#20c997', // teal
+                                  '#fd7e14', // orange
+                                  '#0dcaf0', // cyan
+                                  '#d63384', // pink
+                                  '#ffc107', // yellow
+                                  '#198754', // green
+                                  '#0d6efd'  // blue
+                                ];
+                                const bgColor = customColors[i % customColors.length];
 
-                            return (
-                              <span
-                                key={i}
-                                className="badge me-1"
-                                style={{
-                                  backgroundColor: bgColor,
-                                  color: 'white',
-                                  padding: '0.5em 0.75em',
-                                  fontSize: '0.80rem'
-                                }}
-                              >
-                                {tag}
-                              </span>
-                            );
-                          })}
+                                return (
+                                  <span
+                                    key={i}
+                                    className="badge me-1"
+                                    style={{
+                                      backgroundColor: bgColor,
+                                      color: 'white',
+                                      padding: '0.5em 0.75em',
+                                      fontSize: '0.80rem'
+                                    }}
+                                  >
+                                    {tag}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                )}
+              </>
+            )}
+
+            {activeTab === "posts" && (
+              <>
+                <h4 className="mb-3">Your Skill Posts</h4>
+                {userPosts.length === 0 ? (
+                  <p>You have not shared any skill posts yet.</p>
+                ) : (
+                  <div className="row">
+                    {userPosts.map((post) => (
+                      <div key={post.id} className="col-12 col-sm-6 col-md-4 mb-4">
+                        <div className="card h-100 shadow-sm post-card">
+                          <div className="card-body d-flex flex-column">
+                            <p className="text-dark mb-2">{post.contentDescription}</p>
+
+                            {post.mediaType?.startsWith("image") && (
+                              <img
+                                src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
+                                alt="Post"
+                                className="img-fluid rounded mb-3"
+                                style={{ objectFit: "cover", height: "200px" }}
+                              />
+                            )}
+
+                            {post.mediaType?.startsWith("video") && (
+                              <video
+                                controls
+                                src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
+                                className="w-100 mb-3 rounded"
+                                style={{ height: "200px" }}
+                              />
+                            )}
+
+                            <small className="text-muted mt-auto">
+                              Posted on {new Date(post.timestamp).toLocaleString()}
+                            </small>
+
+                            <div className="d-flex justify-content-between mt-2">
+                              <button className="btn btn-outline-primary btn-sm" onClick={() => handleEditPost(post)}>Edit</button>
+                              <button className="btn btn-outline-danger btn-sm" onClick={() => handleDeletePost(post.id)}>Delete</button>
+                              <button className="btn btn-outline-secondary btn-sm" onClick={() => openCommentModal(post)}>Comment</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Comment Modal */}
+            {selectedPost && (
+              <CommentSection
+                open={commentModalOpen}
+                onClose={() => setCommentModalOpen(false)}
+                post={selectedPost}
+              />
             )}
             </>
             )}
