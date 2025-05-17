@@ -1,5 +1,5 @@
 // pages/auth/ProfilePage.jsx
-
+import "../../Styles/MyPost.css";
 import React, { useEffect, useState } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
@@ -10,10 +10,16 @@ import { BsBellFill } from "react-icons/bs";
 import { BsGraphUp } from "react-icons/bs";
 import axios from "axios";
 import Form from "react-bootstrap/Form";
+import state from "../../util/Store";
+import { useSnapshot } from "valtio";
+import PostService from "../../services/PostService";
+import CommentSection from "../comment/CommentSection";
+import EditPostModal from "../SkliiPost/EditPostModal";
 
 const ProfilePage = () => {
   const { profile, loading, error, refreshProfile } = useProfile();
   const [publicPlans, setPublicPlans] = useState([]);
+  const [userPosts, setUserPosts] = useState([]);
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
   const [followersList, setFollowersList] = useState([]);
@@ -34,7 +40,10 @@ const ProfilePage = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [progressTab, setProgressTab] = React.useState("unread"); // 'unread' or 'all'
   const unreadCount = progressUpdates.filter((update) => !update.read).length;
-
+  const [activeTab, setActiveTab] = useState("plans");
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const snap = useSnapshot(state);
+  const [selectedPost, setSelectedPost] = useState(null);
   const [editForm, setEditForm] = useState({
     username: "",
     description: "",
@@ -279,6 +288,42 @@ const ProfilePage = () => {
     }
   };
 
+  const fetchUserPosts = async (userId) => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`http://localhost:8080/api/posts/user/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to fetch posts");
+    const posts = await res.json();
+    setUserPosts(posts);
+  } catch (err) {
+    console.error("Error loading posts:", err);
+  }
+};
+
+const handleEditPost = (post) => {
+    state.selectedPost = post;
+    state.editPostModalOpened = true;
+  };
+
+  const handleDeletePost = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
+    if (!confirmDelete) return;
+
+    try {
+      await PostService.deletePost(id);
+      fetchUserPosts(profile.id);
+    } catch (err) {
+      console.error("Failed to delete post", err);
+    }
+  };
+
+  const openCommentModal = (post) => {
+    setSelectedPost(post);
+    setCommentModalOpen(true);
+  };
+
   const handleFileUpload = (e) => {
     setSelectedFile(e.target.files[0]);
   };
@@ -289,6 +334,7 @@ const ProfilePage = () => {
       fetchPublicPlans();
       fetchFollowersAndFollowing();
       fetchProgressUpdates();
+      fetchUserPosts(profile.id);
       fetchDeadlines(profile.id);
       fetchNotifications(profile.id);
     }
@@ -575,7 +621,24 @@ const ProfilePage = () => {
 
             <hr />
 
+            <div className="d-flex justify-content-center mt-4 mb-3">
+            <button
+              className={`btn btn-sm mx-2 ${activeTab === "plans" ? "btn-primary" : "btn-outline-primary"}`}
+              onClick={() => setActiveTab("plans")}
+            >
+              Learning Plans
+            </button>
+            <button
+              className={`btn btn-sm mx-2 ${activeTab === "posts" ? "btn-primary" : "btn-outline-primary"}`}
+              onClick={() => setActiveTab("posts")}
+            >
+              Skill Posts
+            </button>
+          </div>
+
             {/* Public Learning Plans */}
+            {activeTab === "plans" && (
+            <>  
             <h4 className="mb-3">Your Public Learning Plans</h4>
             {publicPlans.length === 0 ? (
               <p>You have no public plans yet.</p>
@@ -626,6 +689,66 @@ const ProfilePage = () => {
                 ))}
               </div>
             )}
+            </>
+            )}
+
+            {activeTab === "posts" && (
+            <>
+              <h4 className="mb-3">Your Skill Posts</h4>
+              {userPosts.length === 0 ? (
+                <p>You have not shared any skill posts yet.</p>
+              ) : (
+                <div className="row">
+                  {userPosts.map((post) => (
+                    <div key={post.id} className="col-12 col-sm-6 col-md-4 mb-4">
+                      <div className="card h-100 shadow-sm post-card">
+                        <div className="card-body d-flex flex-column">
+                          <p className="text-dark mb-2">{post.contentDescription}</p>
+
+                          {post.mediaType?.startsWith("image") && (
+                            <img
+                              src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
+                              alt="Post"
+                              className="img-fluid rounded mb-3"
+                              style={{ objectFit: "cover", height: "200px" }}
+                            />
+                          )}
+
+                          {post.mediaType?.startsWith("video") && (
+                            <video
+                              controls
+                              src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
+                              className="w-100 mb-3 rounded"
+                              style={{ height: "200px" }}
+                            />
+                          )}
+
+                          <small className="text-muted mt-auto">
+                            Posted on {new Date(post.timestamp).toLocaleString()}
+                          </small>
+
+                          <div className="d-flex justify-content-between mt-2">
+                            <button className="btn btn-outline-primary btn-sm" onClick={() => handleEditPost(post)}>Edit</button>
+                            <button className="btn btn-outline-danger btn-sm" onClick={() => handleDeletePost(post.id)}>Delete</button>
+                            <button className="btn btn-outline-secondary btn-sm" onClick={() => openCommentModal(post)}>Comment</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Comment Modal */}
+        {selectedPost && (
+          <CommentSection
+            open={commentModalOpen}
+            onClose={() => setCommentModalOpen(false)}
+            post={selectedPost}
+          />
+        )}
 
             {/* Followers Modal */}
             <Modal show={showFollowers} onHide={() => setShowFollowers(false)}>
@@ -698,6 +821,11 @@ const ProfilePage = () => {
                 </Form>
               </Modal.Body>
             </Modal>
+
+            {/* Skill Post Edit Modal */}
+            {snap.editPostModalOpened && (
+              <EditPostModal />
+            )}
           </div>
         </div>
       </div>
