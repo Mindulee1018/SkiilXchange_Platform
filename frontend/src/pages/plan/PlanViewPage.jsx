@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/common/navbar';
-import WebSocketNotifications from '../../components/WebSocketNotifications';
 import '../../Styles/PlanViewPage.css'; // Add your CSS file for styling
 
 const PlanViewPage = () => {
@@ -315,7 +314,7 @@ const PlanViewPage = () => {
           View Plan Progress
         </button>
 
-        <WebSocketNotifications />
+        
       </div>
     </>
   );
