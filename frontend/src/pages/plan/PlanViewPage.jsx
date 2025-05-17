@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/common/navbar';
 import WebSocketNotifications from '../../components/WebSocketNotifications';
+import '../../Styles/PlanViewPage.css'; // Add your CSS file for styling
 
 const PlanViewPage = () => {
   const { id } = useParams();
@@ -184,7 +185,7 @@ const PlanViewPage = () => {
       <div className="container mt-5">
         <div className="d-flex justify-content-between align-items-center">
 
-          <h2>
+          <h2 className="pt-5">
             {plan.title}
             {plan.completed && <span className="badge bg-success ms-3">✅ Plan Completed</span>}
           </h2>
@@ -202,19 +203,34 @@ const PlanViewPage = () => {
         <p>{plan.description}</p>
 
         <div className="mb-2">
-          {plan.tags?.map((tag, i) => (
-            <span
-              key={i}
-              className="badge bg-secondary me-1"
-              style={{ cursor: 'pointer' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/search?tag=${encodeURIComponent(tag)}`);
-              }}
-            >
-              {tag}
-            </span>
-          ))}
+          {plan.tags?.map((tag, i) => {
+            const customColors = [
+              '#6f42c1', // purple
+              '#20c997', // teal
+              '#fd7e14', // orange
+              '#0dcaf0', // cyan
+              '#d63384', // pink
+              '#ffc107', // yellow
+              '#198754', // green
+              '#0d6efd'  // blue
+            ];
+            const bgColor = customColors[i % customColors.length];
+
+            return (
+              <span
+                key={i}
+                className="badge me-1"
+                style={{
+                  backgroundColor: bgColor,
+                  color: 'white',
+                  padding: '0.5em 0.75em',
+                  fontSize: '0.75rem'
+                }}
+              >
+                {tag}
+              </span>
+            );
+          })}
         </div>
 
         <p>
@@ -295,7 +311,7 @@ const PlanViewPage = () => {
         )}
 
         {/* View Plan Progress Button */}
-        <button className="btn btn-info mt-3" onClick={handleViewProgress}>
+        <button className="btn btn-info mt-3 mb-5" onClick={handleViewProgress}>
           View Plan Progress
         </button>
 

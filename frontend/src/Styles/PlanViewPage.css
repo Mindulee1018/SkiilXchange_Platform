@@ -1,0 +1,164 @@
+/* Container tweaks */
+.container {
+  max-width: 900px;
+  padding-bottom: 4rem; /* add space for bottom content */
+}
+
+/* Title and badges */
+h2 {
+  font-weight: 700;
+  font-size: 2.25rem;
+}
+
+h2 .badge {
+  font-size: 1rem;
+  padding: 0.4em 0.75em;
+  vertical-align: middle;
+}
+
+/* Skill text */
+.text-muted {
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Tag badges with slight shadow */
+.badge {
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
+  transition: transform 0.15s ease-in-out;
+  cursor: default;
+}
+
+.badge:hover {
+  transform: scale(1.05);
+}
+
+/* Progress bar text */
+.progress-bar {
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Task list styles */
+.list-group-item {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  transition: background-color 0.3s ease;
+}
+
+.list-group-item:hover {
+  background-color: #f1f7ff;
+}
+
+.form-check-label {
+  user-select: none;
+  cursor: pointer;
+}
+
+.form-check-input {
+  cursor: pointer;
+  width: 1.3rem;
+  height: 1.3rem;
+  margin-top: 0.3rem;
+  margin-right: 1rem;
+}
+
+.badge.bg-success {
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.35em 0.65em;
+}
+
+.badge.bg-warning {
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.35em 0.65em;
+}
+
+/* Buttons styling */
+.btn {
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.2rem;
+  box-shadow: 0 3px 6px rgb(0 0 0 / 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+  box-shadow: 0 6px 12px rgb(0 0 0 / 0.15);
+  transform: translateY(-2px);
+}
+
+/* Specific button colors */
+.btn-success {
+  background-color: #198754;
+  border-color: #198754;
+}
+
+.btn-success:hover {
+  background-color: #157347;
+  border-color: #157347;
+}
+
+.btn-outline-primary {
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+.btn-outline-primary:hover {
+  background-color: #0d6efd;
+  color: white;
+  border-color: #0d6efd;
+}
+
+.btn-outline-danger {
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+.btn-info {
+  background-color: #0dcaf0;
+  border-color: #0dcaf0;
+  color: #fff;
+}
+
+.btn-info:hover {
+  background-color: #0bb8d9;
+  border-color: #0bb8d9;
+  color: #fff;
+}
+
+/* Alert styling */
+.alert {
+  font-weight: 600;
+  border-radius: 0.5rem;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+/* Responsive tweaks */
+@media (max-width: 576px) {
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  .btn {
+    font-size: 0.9rem;
+    padding: 0.4rem 1rem;
+  }
+
+  .list-group-item {
+    padding: 0.75rem 1rem;
+  }
+}

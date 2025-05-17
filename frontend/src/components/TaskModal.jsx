@@ -30,32 +30,70 @@ const TaskModal = ({ show, onClose, onSave, initialTask, mode }) => {
 
   return (
     <Modal show={show} onHide={onClose} centered>
-      <Modal.Header closeButton>
+      <Modal.Header
+        closeButton
+        style={{ backgroundColor: '#2563EB', color: 'white' }}
+      >
         <Modal.Title>{mode === 'edit' ? 'Edit Task' : 'Add Task'}</Modal.Title>
       </Modal.Header>
-      <Modal.Body>
+      <Modal.Body style={{ backgroundColor: '#EFF6FF' }}>
         <Form>
           <Form.Group className="mb-3">
-            <Form.Label>Title</Form.Label>
-            <Form.Control name="title" value={task.title} onChange={handleChange} required />
+            <Form.Label style={{ color: '#2563EB', fontWeight: '600' }}>Title *</Form.Label>
+            <Form.Control
+              name="title"
+              value={task.title}
+              onChange={handleChange}
+              style={{ backgroundColor: '#DBEAFE' }}
+              required
+            />
           </Form.Group>
           <Form.Group className="mb-3">
-            <Form.Label>Description</Form.Label>
-            <Form.Control name="description" value={task.description} onChange={handleChange} />
+            <Form.Label style={{ color: '#2563EB', fontWeight: '600' }}>Description</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              name="description"
+              value={task.description}
+              onChange={handleChange}
+              style={{ backgroundColor: '#DBEAFE' }}
+            />
           </Form.Group>
           <Form.Group className="mb-3">
-            <Form.Label>Due Date</Form.Label>
-            <Form.Control type="date" name="dueDate" value={task.dueDate} onChange={handleChange} required />
+            <Form.Label style={{ color: '#2563EB', fontWeight: '600' }}>Due Date *</Form.Label>
+            <Form.Control
+              type="date"
+              name="dueDate"
+              value={task.dueDate}
+              onChange={handleChange}
+              style={{ backgroundColor: '#DBEAFE' }}
+              required
+            />
           </Form.Group>
           <Form.Group className="mb-3">
-            <Form.Label>Duration (in days)</Form.Label>
-            <Form.Control type="number" name="durationInDays" value={task.durationInDays} onChange={handleChange} required />
+            <Form.Label style={{ color: '#2563EB', fontWeight: '600' }}>Duration (in days) *</Form.Label>
+            <Form.Control
+              type="number"
+              name="durationInDays"
+              value={task.durationInDays}
+              onChange={handleChange}
+              style={{ backgroundColor: '#DBEAFE' }}
+              required
+            />
           </Form.Group>
         </Form>
       </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onClose}>Cancel</Button>
-        <Button variant="primary" onClick={handleSubmit}>Save Task</Button>
+      <Modal.Footer style={{ backgroundColor: '#EFF6FF' }}>
+        <Button variant="secondary" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleSubmit}
+          style={{ backgroundColor: '#2563EB', borderColor: '#2563EB' }}
+        >
+          Save Task
+        </Button>
       </Modal.Footer>
     </Modal>
   );

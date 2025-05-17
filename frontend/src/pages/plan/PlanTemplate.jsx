@@ -154,60 +154,113 @@ const PlanTemplate = () => {
       <div className="fixed-top bg-white shadow-sm">
         <Navbar />
       </div>
-      <div className="container mt-5 pt-5">
-        <h2>{isEdit ? "Edit" : "Create"} Learning Plan</h2>
+      <div className="container mt-5 pt-5" style={{ maxWidth: "700px" }}>
+        <h2
+          className="mb-4"
+          style={{ color: "#3B82F6", fontWeight: "700", textAlign: "center" }}
+        >
+          {isEdit ? "Edit" : "Create"} Learning Plan
+        </h2>
 
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && (
+          <div
+            className="alert alert-danger"
+            style={{ backgroundColor: "#F87171", borderColor: "#F87171" }}
+          >
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
+          {/* Title */}
           <div className="mb-3">
-            <label className="form-label">Title</label>
+            <label
+              className="form-label"
+              style={{ color: "#2563EB", fontWeight: "600" }}
+            >
+              Title
+            </label>
             <input
               name="title"
-              className="form-control"
+              className="form-control border-primary"
               value={formData.title}
               onChange={handleChange}
               required
+              style={{ backgroundColor: "#EFF6FF" }}
             />
           </div>
+
+          {/* Description */}
           <div className="mb-3">
-            <label className="form-label">Description</label>
+            <label
+              className="form-label"
+              style={{ color: "#2563EB", fontWeight: "600" }}
+            >
+              Description
+            </label>
             <input
               name="description"
-              className="form-control"
+              className="form-control border-primary"
               value={formData.description}
               onChange={handleChange}
+              style={{ backgroundColor: "#EFF6FF" }}
             />
           </div>
+
+          {/* Skill */}
           <div className="mb-3">
-            <label className="form-label">Skill</label>
+            <label
+              className="form-label"
+              style={{ color: "#2563EB", fontWeight: "600" }}
+            >
+              Skill
+            </label>
             <input
               name="skill"
-              className="form-control"
+              className="form-control border-primary"
               value={formData.skill}
               onChange={handleChange}
+              style={{ backgroundColor: "#EFF6FF" }}
             />
           </div>
+
+          {/* Tags */}
           <div className="mb-3">
-            <label className="form-label">Tags (comma-separated)</label>
+            <label
+              className="form-label"
+              style={{ color: "#2563EB", fontWeight: "600" }}
+            >
+              Tags (comma-separated)
+            </label>
             <input
               name="tags"
-              className="form-control"
+              className="form-control border-primary"
               value={formData.tags}
               onChange={handleChange}
+              style={{ backgroundColor: "#EFF6FF" }}
             />
           </div>
+
+          {/* Learning Period */}
           <div className="mb-3">
-            <label className="form-label">Learning Period (days)</label>
+            <label
+              className="form-label"
+              style={{ color: "#2563EB", fontWeight: "600" }}
+            >
+              Learning Period (days)
+            </label>
             <input
               name="learningPeriodInDays"
               type="number"
-              className="form-control"
+              className="form-control border-primary"
               value={formData.learningPeriodInDays}
               onChange={handleChange}
               required
+              style={{ backgroundColor: "#EFF6FF" }}
             />
           </div>
+
+          {/* Public checkbox */}
           <div className="form-check mb-4">
             <input
               type="checkbox"
@@ -217,22 +270,33 @@ const PlanTemplate = () => {
               checked={formData.isPublic}
               onChange={handleChange}
             />
-            <label className="form-check-label" htmlFor="isPublic">
+            <label
+              className="form-check-label"
+              htmlFor="isPublic"
+              style={{ color: "#2563EB", fontWeight: "600" }}
+            >
               Make Plan Public
             </label>
           </div>
 
-          <h4>Tasks</h4>
-          {formData.tasks.length === 0 && <p>No tasks added yet.</p>}
+          {/* Tasks Section */}
+          <h4 style={{ color: "#2563EB", fontWeight: "700", marginBottom: "1rem" }}>
+            Tasks
+          </h4>
+          {formData.tasks.length === 0 && (
+            <p style={{ color: "#6B7280", fontStyle: "italic" }}>No tasks added yet.</p>
+          )}
           {formData.tasks.map((task, index) => (
             <div
               key={index}
-              className="border rounded p-3 mb-3 bg-light d-flex justify-content-between align-items-start"
+              className="border rounded p-3 mb-3 d-flex justify-content-between align-items-start"
+              style={{ backgroundColor: "#DBEAFE" }}
             >
               <div>
-                <strong>{task.title}</strong> – {task.durationInDays} day(s)
+                <strong style={{ color: "#1D4ED8" }}>{task.title}</strong> –{" "}
+                {task.durationInDays} day(s)
                 <br />
-                <small>Due: {task.dueDate}</small>
+                <small style={{ color: "#2563EB" }}>Due: {task.dueDate}</small>
               </div>
               <div>
                 <button
@@ -257,10 +321,15 @@ const PlanTemplate = () => {
             type="button"
             className="btn btn-outline-secondary mb-3"
             onClick={openAddTaskModal}
+            style={{ borderColor: "#3B82F6", color: "#3B82F6" }}
           >
             + Add Task
           </button>
-          <button type="submit" className="btn btn-primary w-100">
+          <button
+            type="submit"
+            className="btn btn-primary w-100"
+            style={{ backgroundColor: "#2563EB", borderColor: "#2563EB", marginBottom: "50px"}}
+          >
             {isEdit ? "Update Plan" : "Create Plan"}
           </button>
         </form>
@@ -270,14 +339,13 @@ const PlanTemplate = () => {
           onClose={() => setShowTaskModal(false)}
           onSave={handleSaveTask}
           initialTask={
-            taskBeingEditedIndex !== null
-              ? formData.tasks[taskBeingEditedIndex]
-              : null
+            taskBeingEditedIndex !== null ? formData.tasks[taskBeingEditedIndex] : null
           }
           mode={taskBeingEditedIndex !== null ? "edit" : "add"}
         />
       </div>
     </>
+
   );
 };
 

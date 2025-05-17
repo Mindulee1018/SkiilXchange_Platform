@@ -1,10 +1,13 @@
 import React, { useState } from "react";
-import { Modal, Form, Input, Button, Upload, message } from "antd";
+import { Modal, Form, Input, Button, Upload, message, Typography, Divider, } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useSnapshot } from "valtio";
 import state from "../../util/Store";
 import PostService from "../../services/PostService";
 import useProfile from "../../hooks/useProfile";
+import "../../Styles/SkillPostUploader.css";
+
+const { Title, Text } = Typography;
 
 const SkillPostUploader = () => {
   const snap = useSnapshot(state);
@@ -130,32 +133,29 @@ const SkillPostUploader = () => {
         setMediaFiles([]);
         setMediaURLs([]);
       }}
-      footer={[
-        <Button key="cancel" onClick={() => (state.uploadPostModalOpened = false)}>
-          Cancel
-        </Button>,
-        <Button
-          key="create"
-          type="primary"
-          loading={loading}
-          disabled={mediaUploading}
-          onClick={form.submit}
-        >
-          Create
-        </Button>,
-      ]}
+      footer={null}
+      centered
+      bodyStyle={{ padding: "24px 32px", backgroundColor: "#f9f9f9", borderRadius: 12 }}
     >
-      <h1>Create Skill Sharing Post</h1>
-      <Form form={form} onFinish={handleCreate}>
+      <h2 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: 20 }}>
+        🎯 Create Skill Sharing Post
+      </h2>
+
+      <Form
+        form={form}
+        onFinish={handleCreate}
+        layout="vertical"
+        style={{ marginBottom: "1rem" }}
+      >
         <Form.Item
           name="contentDescription"
-          label="Content Description"
+          label={<strong>Content Description</strong>}
           rules={[{ required: true, message: "Please enter content description" }]}
         >
-          <Input.TextArea />
+          <Input.TextArea rows={4} placeholder="Share what you’ve learned or discovered..." />
         </Form.Item>
 
-        <Form.Item label="Upload Media (Max 3)">
+        <Form.Item label={<strong>Upload Media (Max 3)</strong>}>
           <Upload
             accept="image/*,video/*"
             multiple
@@ -164,34 +164,74 @@ const SkillPostUploader = () => {
             beforeUpload={() => false}
             onChange={handleFileChange}
             fileList={mediaFiles}
+            style={{ width: "100%" }}
           >
-            <Button icon={<UploadOutlined />}>Upload</Button>
+            <Button icon={<UploadOutlined />} block>
+              Upload Media
+            </Button>
           </Upload>
-          {error && <p className="text-danger mt-2">{error}</p>}
+          {error && (
+            <p style={{ color: "red", marginTop: "8px", fontWeight: 500 }}>{error}</p>
+          )}
         </Form.Item>
-      </Form>
 
-      {mediaUploading && <p>Uploading media, please wait...</p>}
-
-      <div style={{ marginTop: "1rem" }}>
-        {mediaURLs.map((file, index) =>
-          file.type === "image" ? (
-            <img
-              key={index}
-              src={file.url}
-              alt="preview"
-              style={{ width: "100%", maxHeight: 400, objectFit: "contain", marginBottom: 12 }}
-            />
-          ) : (
-            <video
-              key={index}
-              controls
-              src={file.url}
-              style={{ width: "100%", maxHeight: 400, marginBottom: 12 }}
-            />
-          )
+        {mediaUploading && (
+          <p style={{ color: "#1890ff", marginBottom: 12 }}>📤 Uploading media, please wait...</p>
         )}
-      </div>
+
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
+          {mediaURLs.map((file, index) =>
+            file.type === "image" ? (
+              <img
+                key={index}
+                src={file.url}
+                alt="preview"
+                style={{
+                  width: 150,
+                  height: 150,
+                  objectFit: "cover",
+                  borderRadius: 8,
+                  boxShadow: "0 0 6px rgba(0,0,0,0.1)",
+                }}
+              />
+            ) : (
+              <video
+                key={index}
+                controls
+                src={file.url}
+                style={{
+                  width: 200,
+                  height: 150,
+                  borderRadius: 8,
+                  boxShadow: "0 0 6px rgba(0,0,0,0.1)",
+                }}
+              />
+            )
+          )}
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+          <Button
+            onClick={() => (state.uploadPostModalOpened = false)}
+            style={{ borderRadius: 8 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading}
+            disabled={mediaUploading}
+            style={{
+              borderRadius: 8,
+              backgroundColor: "#1677ff",
+              borderColor: "#1677ff",
+            }}
+          >
+            Post Now
+          </Button>
+        </div>
+      </Form>
     </Modal>
   );
 };

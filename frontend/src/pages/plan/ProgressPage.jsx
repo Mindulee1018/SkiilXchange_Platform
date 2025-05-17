@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '../../components/common/navbar';
-import './ProgressPage.css'; 
+import '../../Styles/ProgressPage.css'; 
 import ProgressTimeline from './ProgressTimeline';
 
 const ProgressPage = () => {

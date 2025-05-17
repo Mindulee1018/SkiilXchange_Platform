@@ -54,25 +54,25 @@ const PublicPlansPage = () => {
     <>
       <Navbar />
       <div className="container mt-5">
-        <h2 className="mb-4">Explore Public Learning Plans</h2>
+        <h2 className="mb-4 text-center fw-bold">🌟 Explore Public Learning Plans</h2>
 
-        <div className="row mb-4">
-          <div className="col-md-6">
+        <div className="row mb-5 justify-content-center">
+          <div className="col-md-5 mb-2">
             <input
               type="text"
-              className="form-control"
-              placeholder="Search by title, skill, or description..."
+              className="form-control shadow-sm"
+              placeholder="🔍 Search by title, skill, or description..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="col-md-6">
+          <div className="col-md-4">
             <select
-              className="form-select"
+              className="form-select shadow-sm"
               value={selectedTag}
               onChange={(e) => setSelectedTag(e.target.value)}
             >
-              <option value="">Filter by tag</option>
+              <option value="">🎯 Filter by tag</option>
               {[...new Set(plans.flatMap(plan => plan.tags || []))].map(tag => (
                 <option key={tag} value={tag}>{tag}</option>
               ))}
@@ -81,50 +81,49 @@ const PublicPlansPage = () => {
         </div>
 
         {filteredPlans.length === 0 ? (
-          <p>No matching public plans found.</p>
+          <p className="text-center text-muted fs-5">🚫 No matching public plans found.</p>
         ) : (
           <div className="row">
             {filteredPlans.map(plan => (
               <div key={plan.id} className="col-md-6 mb-4">
-                <div className="card h-100 shadow-sm" onClick={() => navigate(`/plans/view/${plan.id}`)} style={{ cursor: 'pointer' }}>
+                <div
+                  className="card h-100 border-0 shadow-sm plan-card"
+                  onClick={() => navigate(`/plans/view/${plan.id}`)}
+                  style={{ cursor: 'pointer', transition: '0.3s ease' }}
+                  onMouseEnter={e => e.currentTarget.classList.add('shadow-lg')}
+                  onMouseLeave={e => e.currentTarget.classList.remove('shadow-lg')}
+                >
                   <div className="card-body">
-                    <h5 className="card-title">{plan.title}</h5>
-                    <h6 className="card-subtitle mb-2 text-muted">{plan.skill}</h6>
-                    <p className="card-text">{plan.description}</p>
-                    <div className="mb-2">
+                    <h5 className="card-title fw-bold">{plan.title}</h5>
+                    <h6 className="card-subtitle mb-2 text-primary">{plan.skill}</h6>
+                    <p className="card-text text-muted">{plan.description}</p>
+                    <div className="mb-3">
                       {plan.tags?.map((tag, i) => {
                         const customColors = [
-                          '#6f42c1', // purple
-                          '#20c997', // teal
-                          '#fd7e14', // orange
-                          '#0dcaf0', // cyan
-                          '#d63384', // pink
-                          '#ffc107', // yellow
-                          '#198754', // green
-                          '#0d6efd'  // blue
+                          '#6f42c1', '#20c997', '#fd7e14', '#0dcaf0',
+                          '#d63384', '#ffc107', '#198754', '#0d6efd'
                         ];
                         const bgColor = customColors[i % customColors.length];
 
                         return (
                           <span
                             key={i}
-                            className="badge me-1"
+                            className="badge me-1 mb-1"
                             style={{
                               backgroundColor: bgColor,
                               color: 'white',
-                              padding: '0.5em 0.75em',
-                              fontSize: '0.80rem'
+                              padding: '0.45em 0.7em',
+                              fontSize: '0.78rem',
+                              borderRadius: '0.6rem'
                             }}
                           >
                             {tag}
                           </span>
                         );
                       })}
-
-
                     </div>
                     <div className="text-muted small">
-                      Created on: {new Date(plan.createdAt).toLocaleDateString()}
+                      🗓️ Created on: {new Date(plan.createdAt).toLocaleDateString()}
                     </div>
                   </div>
                 </div>
