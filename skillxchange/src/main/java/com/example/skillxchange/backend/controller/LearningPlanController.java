@@ -1,8 +1,10 @@
 package com.example.skillxchange.backend.controller;
 
 import com.example.skillxchange.backend.dto.LearningPlanDTO;
+import com.example.skillxchange.backend.model.Deadline;
 import com.example.skillxchange.backend.model.LearningPlan;
 import com.example.skillxchange.backend.model.ProgressUpdate;
+import com.example.skillxchange.backend.repository.DeadlineRepository;
 import com.example.skillxchange.backend.repository.LearningPlanRepository;
 import com.example.skillxchange.backend.repository.ProgressUpdateRepository;
 import com.example.skillxchange.backend.repository.UserRepository;
@@ -42,6 +44,9 @@ public class LearningPlanController {
 
     @Autowired
     private AchievementService achievementService;
+
+    @Autowired
+    private DeadlineRepository deadlineRepository; // Assuming you have a DeadlineRepository
 
     //create plan
 
@@ -85,6 +90,23 @@ public class LearningPlanController {
         plan.setLearningPeriodInDays(planDto.getLearningPeriodInDays());
 
         learningPlanRepository.save(plan);
+
+        // ✅ Save each task's deadline to the "deadlines" collection
+        for (Task task : plan.getTasks()) {
+            if (task.getDueDate() != null) {
+                Deadline deadline = new Deadline();
+                deadline.setUserId(user.getId());
+                deadline.setTaskTitle(task.getTitle());
+                deadline.setLearningPlanId(plan.getId());
+                deadline.setDueDate(task.getDueDate());
+                deadline.setNotified(false);
+                
+                // Define the message here
+                String message = "Reminder: Your task \"" + task.getTitle() + "\" is coming up.";
+                deadline.setNotificationMessage(message);
+                deadlineRepository.save(deadline);
+            }
+        }
 
         int userPlanCount = (int) learningPlanRepository.countByUserId(user.getId());
         achievementService.checkAndAwardAchievements(user.getId(), "plan_created", userPlanCount);

@@ -19,6 +19,8 @@ const ProfilePage = () => {
   const [showFollowing, setShowFollowing] = useState(false);
   const [followersList, setFollowersList] = useState([]);
   const [followingList, setFollowingList] = useState([]);
+  const [deadlines, setDeadlines] = useState([]);
+  const [showDeadlines, setShowDeadliness] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProgressUpdates, setShowProgressUpdates] = useState(false);
   const [progressUpdates, setProgressUpdates] = useState([]);
@@ -235,11 +237,22 @@ const ProfilePage = () => {
     setSelectedFile(e.target.files[0]);
   };
 
+  const fetchDeadlines = async (userId) => {
+    try {
+      const response = await axios.get(`/api/deadlines/user/${userId}`);
+      setDeadlines(response.data);
+    } catch (error) {
+      console.error('Failed to fetch deadlines', error);
+    }
+  };
+
+
   useEffect(() => {
     if (profile?.id) {
       fetchPublicPlans();
       fetchFollowersAndFollowing();
       fetchProgressUpdates();
+      fetchDeadlines();
     }
   }, [profile]);
 
@@ -294,7 +307,82 @@ const ProfilePage = () => {
                     </span>
                   )}
                 </button>
-                
+
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  {/* Deadline icon/button */}
+                  <button
+                    onClick={() => setShowDeadliness(!showDeadlines)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '24px',
+                      position: 'relative',
+                    }}
+                    aria-label="Deadline Notifications"
+                    title="Deadline Notifications"
+                  >
+                    ⏰
+                    {deadlines.length > 0 && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          right: 0,
+                          background: 'red',
+                          color: 'white',
+                          borderRadius: '50%',
+                          padding: '2px 6px',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {deadlines.length}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Notification dropdown */}
+                  {showDeadlines && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '30px',
+                        right: 0,
+                        width: '300px',
+                        maxHeight: '400px',
+                        overflowY: 'auto',
+                        backgroundColor: 'white',
+                        border: '1px solid #ccc',
+                        borderRadius: '6px',
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                        zIndex: 100,
+                      }}
+                    >
+                      <h4 style={{ margin: '10px' }}>Upcoming Deadlines</h4>
+                      {loading ? (
+                        <p style={{ padding: '10px' }}>Loading...</p>
+                      ) : deadlines.length === 0 ? (
+                        <p style={{ padding: '10px' }}>No upcoming deadlines.</p>
+                      ) : (
+                        deadlines.map((deadline) => (
+                          <div
+                            key={deadline.id}
+                            style={{
+                              borderBottom: '1px solid #eee',
+                              padding: '10px',
+                            }}
+                          >
+                            <strong>{deadline.taskName || 'Unnamed Task'}</strong>
+                            <br />
+                            Due: {new Date(deadline.dueDate).toLocaleString()}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <button
                   onClick={toggleNotifications}
                   className="btn btn-outline-warning"
@@ -346,7 +434,7 @@ const ProfilePage = () => {
               dialogClassName="modal-right-side"
               backdrop={true}
               keyboard={true}
-              style={{marginTop: "80px"}}
+              style={{ marginTop: "80px" }}
             >
               <Modal.Header closeButton>
                 <Modal.Title>Progress Updates</Modal.Title>
@@ -366,21 +454,19 @@ const ProfilePage = () => {
                     {/* Tabs */}
                     <div className="mb-3">
                       <button
-                        className={`btn btn-sm me-2 ${
-                          progressTab === "unread"
+                        className={`btn btn-sm me-2 ${progressTab === "unread"
                             ? "btn-primary"
                             : "btn-outline-primary"
-                        }`}
+                          }`}
                         onClick={() => setProgressTab("unread")}
                       >
                         Unread
                       </button>
                       <button
-                        className={`btn btn-sm ${
-                          progressTab === "all"
+                        className={`btn btn-sm ${progressTab === "all"
                             ? "btn-primary"
                             : "btn-outline-primary"
-                        }`}
+                          }`}
                         onClick={() => setProgressTab("all")}
                       >
                         All
@@ -395,9 +481,8 @@ const ProfilePage = () => {
                       ).map((update) => (
                         <li
                           key={update.id}
-                          className={`list-group-item small ${
-                            update.read ? "bg-light" : "bg-white"
-                          }`}
+                          className={`list-group-item small ${update.read ? "bg-light" : "bg-white"
+                            }`}
                         >
                           {update.message ||
                             `${update.planTitle} - Day ${update.dayCompleted} completed`}
