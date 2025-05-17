@@ -16,5 +16,5 @@ public interface DeadlineRepository extends MongoRepository<Deadline, String> {
     List<Deadline> findByDueDateBetweenAndNotifiedFalse(Date from, Date to);
     List<Deadline> findByUserIdAndDueDateBetweenAndNotifiedFalse(String userId, Date start, Date end);
     List<Deadline> findByUserId(String userId);
-    Optional<Deadline> findByIdAndUserId(Long id, String userId);
+    Optional<Deadline> findByIdAndUserId(String id, String userId);
 }

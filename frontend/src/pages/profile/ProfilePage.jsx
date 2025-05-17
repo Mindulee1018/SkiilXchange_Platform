@@ -282,6 +282,13 @@ const ProfilePage = () => {
 
   const markDeadlineAsCompleted = async (deadlineId) => {
     const token = localStorage.getItem("token");
+    const userId = profile?.id;
+
+    if (!userId) {
+    console.error("User ID is not available");
+    return;
+  }
+  
     try {
       const response = await axios.patch(
         `http://localhost:8080/api/deadlines/user/${userId}/mark-completed/${deadlineId}`,
@@ -606,7 +613,10 @@ const ProfilePage = () => {
                       {(deadlineTab === "incomplete"
                         ? deadlines.filter((d) => !d.completed)
                         : deadlines
-                      ).map((deadline) => (
+                      ).map((deadline) => {
+                        console.log("Full deadline object:", JSON.stringify(deadline, null, 2));
+
+                        return(
                         <li
                           key={deadline.id}
                           className={`list-group-item small ${deadline.completed ? "bg-light" : "bg-white"}`}
@@ -629,7 +639,8 @@ const ProfilePage = () => {
                             </div>
                           )}
                         </li>
-                      ))}
+                        );
+                      })}
                       {deadlineTab === "incomplete" &&
                         deadlines.filter((d) => !d.completed).length === 0 && (
                           <p>No incomplete deadlines.</p>

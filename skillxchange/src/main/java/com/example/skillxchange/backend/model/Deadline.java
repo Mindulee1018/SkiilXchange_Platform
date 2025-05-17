@@ -30,6 +30,8 @@ public class Deadline {
         this.notificationMessage = notificationMessage;
     }
 
+    public String getId() {return id;}
+
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
 
