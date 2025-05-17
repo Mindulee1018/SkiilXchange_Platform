@@ -6,7 +6,6 @@ const PlanListPage = () => {
   const [plans, setPlans] = useState([]);
   const [ongoingPlans, setOngoingPlans] = useState([]);
   const [completedPlans, setCompletedPlans] = useState([]);
-  const [updateCounts, setUpdateCounts] = useState({}); // planId => count
   const [myPlans, setMyPlans] = useState([]); // Not completed plans (regardless of updates)
   const [filter, setFilter] = useState('all'); // myPlans, ongoing, completed
   const [loading, setLoading] = useState(true);
@@ -35,8 +34,6 @@ const PlanListPage = () => {
           setCompletedPlans(completed);
           setOngoingPlans(ongoing);
 
-          // Fetch updates for all ongoing plans
-          await fetchProgressUpdateCounts(myPlans.map(p => p.id));
         } else {
           console.error('Failed to load plans');
         }
@@ -50,31 +47,7 @@ const PlanListPage = () => {
     fetchPlans();
   }, []);
 
-  const fetchProgressUpdateCounts = async (planIds) => {
-    try {
-      const token = localStorage.getItem('token');
-      const counts = {};
-
-      for (const planId of planIds) {
-        const res = await fetch(`http://localhost:8080/api/progress-updates/by-plan/${planId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (res.ok) {
-          const updates = await res.json();
-          counts[planId] = updates.length;
-        } else {
-          counts[planId] = 0;
-        }
-      }
-
-      setUpdateCounts(counts);
-    } catch (err) {
-      console.error('Failed to fetch update counts', err);
-    }
-  };
+  
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this plan?')) return;
@@ -254,7 +227,7 @@ const PlanListPage = () => {
                                 <span className={`badge ${plan.isPublic ? 'bg-info' : 'bg-secondary'}`}>
                                   {plan.isPublic ? '🌐 Public' : '🔒 Private'}
                                 </span>{' '}
-                                <span className="badge bg-warning text-dark">{updateCounts[plan.id] || 0} Updates</span>
+                                
                               </div>
                               <div className="card-footer bg-transparent d-flex justify-content-between">
                                 <button className="btn btn-sm btn-light" onClick={(e) => { e.stopPropagation(); navigate(`/plans/edit/${plan.id}`); }}>✏️ Edit</button>

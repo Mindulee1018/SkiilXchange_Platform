@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import NotificationPanel from './NotificationPanel';
 
 
 const Navbar = () => {
@@ -36,11 +35,7 @@ const Navbar = () => {
     fetchProfile();
   }, []);
 
-  const [showNotifications, setShowNotifications] = useState(false);
 
-  const toggleNotifications = () => {
-    setShowNotifications(!showNotifications);
-  };
 
 
   return (

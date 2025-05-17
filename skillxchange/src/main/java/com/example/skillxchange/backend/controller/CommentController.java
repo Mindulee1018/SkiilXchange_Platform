@@ -1,16 +1,17 @@
 package com.example.skillxchange.backend.controller;
 
 import com.example.skillxchange.backend.model.Comment;
-import com.example.skillxchange.backend.model.User;
-import com.example.skillxchange.backend.repository.CommentRepository;
-import com.example.skillxchange.backend.repository.UserRepository;
+import com.example.skillxchange.backend.model.Notification;
+import com.example.skillxchange.backend.model.SkillPost;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import com.example.skillxchange.backend.service.CommentService;
+import com.example.skillxchange.backend.repository.NotificationRepository;
+import com.example.skillxchange.backend.repository.SkillPostRepository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,19 +23,50 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
+    @Autowired
+    private SkillPostRepository skillPostRepository;
+
     @PostMapping
     public ResponseEntity<Comment> createComment(@RequestBody Comment request) {
-        if (request.getPostId() == null || request.getCommentText() == null || request.getCommentText().trim().isEmpty()) {
+        if (request.getPostId() == null || request.getCommentText() == null
+                || request.getCommentText().trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
+
         try {
-            Comment saved = commentService.createComment(request);
-            return ResponseEntity.ok(saved);
+            // Save the comment
+            Comment savedComment = commentService.createComment(request);
+
+            // Fetch the post to get the post owner's userId
+            Optional<SkillPost> postOpt = skillPostRepository.findById(savedComment.getPostId());
+
+            if (postOpt.isPresent()) {
+                SkillPost post = postOpt.get();
+
+                // Notify the post owner if the commenter is not the owner
+                if (!post.getUserId().equals(savedComment.getUserId())) {
+                    Notification notification = new Notification();
+                    notification.setUserId(post.getUserId()); // Receiver (post owner)
+                    notification.setSenderId(savedComment.getUserId()); // Sender (commenter)
+                    notification.setPostId(post.getId());
+                    notification.setMessage(savedComment.getUsername() + " commented on your post.");
+                    notification.setType("comment");
+                    notification.setRead(false);
+                    notification.setTimestamp(new Date());
+
+                    notificationRepository.save(notification);
+                }
+            }
+
+            return ResponseEntity.ok(savedComment);
         } catch (RuntimeException e) {
             return ResponseEntity.status(401).build();
         }
     }
-
+    
     @GetMapping
     public List<Comment> getAllComments() {
         return commentService.getAllComments();
