@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import useProfile from "../../hooks/useProfile";
-import NotificationPanel from "../../components/common/NotificationPanel";
 import Navbar from "../../components/common/navbar";
 import ProfileSidebar from "../../components/profile/ProfileSidebar";
 import { BsBellFill } from "react-icons/bs";
@@ -19,11 +18,17 @@ const ProfilePage = () => {
   const [showFollowing, setShowFollowing] = useState(false);
   const [followersList, setFollowersList] = useState([]);
   const [followingList, setFollowingList] = useState([]);
+
   const [deadlines, setDeadlines] = useState([]);
-  const [showDeadlines, setShowDeadliness] = useState(false);
+  const [showDeadlines, setShowDeadlines] = useState(false);
+  const [loadingDeadlines, setLoadingDeadlines] = useState(false);
+
+  const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showProgressUpdates, setShowProgressUpdates] = useState(false);
+
   const [progressUpdates, setProgressUpdates] = useState([]);
+  const [showProgressUpdates, setShowProgressUpdates] = useState(false);
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -38,14 +43,16 @@ const ProfilePage = () => {
 
   const toggleSidebar = () => setIsCollapsed((prev) => !prev);
 
+  const toggleDeadlines = () => {
+    setShowDeadlines((prev) => !prev);
+  };
+
   const toggleNotifications = () => {
     setShowNotifications((prev) => !prev);
-    setShowProgressUpdates(false);
   };
 
   const toggleProgressUpdates = () => {
     setShowProgressUpdates((prev) => !prev);
-    setShowNotifications(false);
   };
 
   const handleEditClick = () => {
@@ -162,6 +169,25 @@ const ProfilePage = () => {
     }
   };
 
+  const fetchNotifications = async (userId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:8080/api/notifications/user/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data);
+      } else {
+        console.error("Failed to fetch notifications");
+      }
+    } catch (err) {
+      console.error("Error fetching notifications", err);
+    }
+  };
+
   const fetchProgressUpdates = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -178,6 +204,26 @@ const ProfilePage = () => {
       }
     } catch (err) {
       console.error("Error fetching progress updates", err);
+    }
+  };
+
+  const fetchDeadlines = async (userId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `http://localhost:8080/api/deadlines/user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setDeadlines(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch deadlines", err);
     }
   };
 
@@ -237,27 +283,6 @@ const ProfilePage = () => {
     setSelectedFile(e.target.files[0]);
   };
 
-  const fetchDeadlines = async (userId) => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        `http://localhost:8080/api/deadlines/user/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setDeadlines(data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch deadlines", err);
-    }
-  };
-
-
 
   useEffect(() => {
     if (profile?.id) {
@@ -265,6 +290,7 @@ const ProfilePage = () => {
       fetchFollowersAndFollowing();
       fetchProgressUpdates();
       fetchDeadlines(profile.id);
+      fetchNotifications(profile.id);
     }
   }, [profile]);
 
@@ -291,28 +317,14 @@ const ProfilePage = () => {
           {/* Main Content */}
           <div className="col-12 col-md-9">
             <div className="position-relative mb-4">
-              {/* Notification Buttons - Top Right on large, stacked on mobile */}
-              <div className="d-flex justify-content-end flex-wrap gap-2 mb-2 mt-4">
-                {/* <button
-                  onClick={toggleProgressUpdates}
-                  className="btn btn-outline-success"
-                >
-                  Progress Updates
-                  {unreadCount > 0 && (
-                    <span
-                      className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                      style={{ fontSize: "0.7rem" }}
-                    >
-                      {unreadCount}
-                    </span>
-                  )}
-                </button> */}
 
+              <div className="d-flex justify-content-end flex-wrap gap-2 mb-2 mt-4">
+                {/* Progress Update Button */}
                 <button
                   onClick={toggleProgressUpdates}
-                  className="btn btn-outline-success position-relative d-flex align-items-center"
+                  className="btn btn-outline-success position-relative d-flex align-items-center me-2"
                 >
-                  <BsGraphUp className="me-2" /> {/* Bootstrap icon from react-icons */}
+                  <BsGraphUp /> {/* Bootstrap icon from react-icons */}
                   {unreadCount > 0 && (
                     <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                       {unreadCount}
@@ -320,86 +332,30 @@ const ProfilePage = () => {
                   )}
                 </button>
 
-                <div style={{ position: 'relative', display: 'inline-block' }}>
-                  {/* Deadline icon/button */}
-                  <button
-                    onClick={() => setShowDeadliness(!showDeadlines)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: '24px',
-                      position: 'relative',
-                    }}
-                    aria-label="Deadline Notifications"
-                    title="Deadline Notifications"
-                  >
-                    ⏰
-                    {deadlines.length > 0 && (
-                      <span
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          right: 0,
-                          background: 'red',
-                          color: 'white',
-                          borderRadius: '50%',
-                          padding: '2px 6px',
-                          fontSize: '12px',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        {deadlines.length}
-                      </span>
-                    )}
-                  </button>
-
-                  {/* Notification dropdown */}
-                  {showDeadlines && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '30px',
-                        right: 0,
-                        width: '300px',
-                        maxHeight: '400px',
-                        overflowY: 'auto',
-                        backgroundColor: 'white',
-                        border: '1px solid #ccc',
-                        borderRadius: '6px',
-                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                        zIndex: 100,
-                      }}
-                    >
-                      <h4 style={{ margin: '10px' }}>Upcoming Deadlines</h4>
-                      {loading ? (
-                        <p style={{ padding: '10px' }}>Loading...</p>
-                      ) : deadlines.length === 0 ? (
-                        <p style={{ padding: '10px' }}>No upcoming deadlines.</p>
-                      ) : (
-                        deadlines.map((deadline) => (
-                          <div
-                            key={deadline.id}
-                            style={{
-                              borderBottom: '1px solid #eee',
-                              padding: '10px',
-                            }}
-                          >
-                            <strong>{deadline.taskTitle || 'Unnamed Task'}</strong>
-                            <br />
-                            Due: {new Date(deadline.dueDate).toLocaleString()}
-                          </div>
-                        ))
-                      )}
-                    </div>
+                {/* Deadlines Button */}
+                <button
+                  onClick={toggleDeadlines}
+                  className="btn btn-outline-danger position-relative d-flex align-items-center me-2"
+                >
+                  ⏰
+                  {deadlines.length > 0 && (
+                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                      {deadlines.length}
+                    </span>
                   )}
-                </div>
+                </button>
 
+                {/* Notifications Button */}
                 <button
                   onClick={toggleNotifications}
-                  className="btn btn-outline-warning"
+                  className="btn btn-outline-warning position-relative d-flex align-items-center"
                 >
                   <BsBellFill />
+                  {notifications.length > 0 && (
+                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                      {notifications.length}
+                    </span>
+                  )}
                 </button>
               </div>
 
@@ -432,13 +388,6 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Notification Panel */}
-            {showNotifications && (
-              <div className="mt-2 bg-white shadow-lg rounded-lg w-100 mb-3">
-                <NotificationPanel />
-              </div>
-            )}
-
             {/* Progress Updates Panel */}
             <Modal
               show={showProgressUpdates}
@@ -467,8 +416,8 @@ const ProfilePage = () => {
                     <div className="mb-3">
                       <button
                         className={`btn btn-sm me-2 ${progressTab === "unread"
-                            ? "btn-primary"
-                            : "btn-outline-primary"
+                          ? "btn-primary"
+                          : "btn-outline-primary"
                           }`}
                         onClick={() => setProgressTab("unread")}
                       >
@@ -476,8 +425,8 @@ const ProfilePage = () => {
                       </button>
                       <button
                         className={`btn btn-sm ${progressTab === "all"
-                            ? "btn-primary"
-                            : "btn-outline-primary"
+                          ? "btn-primary"
+                          : "btn-outline-primary"
                           }`}
                         onClick={() => setProgressTab("all")}
                       >
@@ -525,6 +474,83 @@ const ProfilePage = () => {
                         )}
                     </ul>
                   </>
+                )}
+              </Modal.Body>
+            </Modal>
+
+            {/* Notifications Panel */}
+            <Modal
+              show={showNotifications}
+              onHide={toggleNotifications}
+              dialogClassName="modal-right-side"
+              backdrop={true}
+              keyboard={true}
+              style={{ marginTop: "80px" }}
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>Notifications</Modal.Title>
+              </Modal.Header>
+
+              <Modal.Body style={{ maxHeight: "60vh", overflowY: "auto" }}>
+                {notifications.length === 0 ? (
+                  <p>No notifications yet.</p>
+                ) : (
+                  <ul className="list-group">
+                    {notifications.map((notification, index) => (
+                      <li
+                        key={index}
+                        className="list-group-item small bg-white"
+                      >
+                        <strong>{notification.title || "Notification"}</strong><br />
+                        <span>
+                          {notification.message ||
+                            notification.content ||
+                            "You have a new update."}
+                        </span>
+                        <br />
+                        <small className="text-muted">
+                          {new Date(notification.createdAt).toLocaleString()}
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Modal.Body>
+            </Modal>
+
+            {/* Deadlines Panel */}
+            <Modal
+              show={showDeadlines}
+              onHide={toggleDeadlines}
+              dialogClassName="modal-right-side"
+              backdrop={true}
+              keyboard={true}
+              style={{ marginTop: "80px" }}
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>Upcoming Deadlines</Modal.Title>
+              </Modal.Header>
+
+              <Modal.Body style={{ maxHeight: "60vh", overflowY: "auto" }}>
+                {loadingDeadlines ? (
+                  <p>Loading...</p>
+                ) : deadlines.length === 0 ? (
+                  <p>No upcoming deadlines.</p>
+                ) : (
+                  <ul className="list-group">
+                    {deadlines.map((deadline) => (
+                      <li
+                        key={deadline.id}
+                        className="list-group-item small"
+                      >
+                        <strong>{deadline.taskTitle || "Unnamed Task"}</strong>
+                        <br />
+                        <small className="text-muted">
+                          Due: {new Date(deadline.dueDate).toLocaleString()}
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </Modal.Body>
             </Modal>
