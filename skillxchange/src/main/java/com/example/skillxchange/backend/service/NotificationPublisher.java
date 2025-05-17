@@ -1,10 +1,10 @@
 package com.example.skillxchange.backend.service;
 
-import com.example.skillxchange.backend.model.Deadline;
+//import com.example.skillxchange.backend.model.Deadline;
 //import com.example.skillxchange.backend.dto.NotificationMessageDTO;
 import com.example.skillxchange.backend.model.ProgressUpdate;
 
-import javax.management.Notification;
+//import javax.management.Notification;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

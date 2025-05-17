@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.skillxchange.backend.model.Deadline;
 import com.example.skillxchange.backend.repository.DeadlineRepository;
-import com.example.skillxchange.backend.service.NotificationPublisher;
+//import com.example.skillxchange.backend.service.NotificationPublisher;
 
 @Service
 public class DeadlineNotifierService {
