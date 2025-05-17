@@ -289,7 +289,6 @@ const ProfilePage = () => {
     }
   };
 
-
   const markDeadlineAsCompleted = async (deadlineId) => {
     const token = localStorage.getItem("token");
     const userId = profile?.id;
@@ -343,7 +342,7 @@ const ProfilePage = () => {
   //     console.error("Error:", error);
   //   }
   // };
-=======
+
   const fetchUserPosts = async (userId) => {
   try {
     const token = localStorage.getItem("token");
@@ -661,6 +660,7 @@ const handleEditPost = (post) => {
                       {(deadlineTab === "incomplete"
                         ? deadlines.filter((d) => !d.completed)
                         : deadlines
+
                       ).map((deadline) => {
                         console.log("Full deadline object:", JSON.stringify(deadline, null, 2));
 
@@ -687,8 +687,10 @@ const handleEditPost = (post) => {
                             </div>
                           )}
                         </li>
+
                         );
                       })}
+
                       {deadlineTab === "incomplete" &&
                         deadlines.filter((d) => !d.completed).length === 0 && (
                           <p>No incomplete deadlines.</p>
