@@ -1,7 +1,6 @@
 package com.example.skillxchange.backend.controller;
 
 import com.example.skillxchange.backend.model.Notification;
-import com.example.skillxchange.backend.model.ProgressUpdate;
 import com.example.skillxchange.backend.repository.NotificationRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
