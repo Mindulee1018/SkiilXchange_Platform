@@ -35,6 +35,13 @@ const ProfilePage = () => {
   const [progressTab, setProgressTab] = React.useState("unread"); // 'unread' or 'all'
   const unreadCount = progressUpdates.filter((update) => !update.read).length;
 
+  const [notificationSettings, setNotificationSettings] = useState({
+    progressUpdateNotifications: true,
+    deadlineNotifications: true,
+    generalNotifications: true,
+  });
+
+
   const [editForm, setEditForm] = useState({
     username: "",
     description: "",
@@ -283,6 +290,24 @@ const ProfilePage = () => {
     setSelectedFile(e.target.files[0]);
   };
 
+  const fetchNotificationSettings = async (userId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:8080/api/settings/user/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotificationSettings(data);
+      } else {
+        console.error("Failed to fetch notification settings");
+      }
+    } catch (err) {
+      console.error("Error fetching notification settings", err);
+    }
+  };
 
   useEffect(() => {
     if (profile?.id) {
@@ -291,6 +316,7 @@ const ProfilePage = () => {
       fetchProgressUpdates();
       fetchDeadlines(profile.id);
       fetchNotifications(profile.id);
+      fetchNotificationSettings(profile.id);
     }
   }, [profile]);
 
@@ -389,6 +415,7 @@ const ProfilePage = () => {
             </div>
 
             {/* Progress Updates Panel */}
+            {notificationSettings.progressUpdateNotifications && (
             <Modal
               show={showProgressUpdates}
               onHide={toggleProgressUpdates}
@@ -477,8 +504,10 @@ const ProfilePage = () => {
                 )}
               </Modal.Body>
             </Modal>
+            )}
 
             {/* Notifications Panel */}
+            {notificationSettings.generalNotifications && (
             <Modal
               show={showNotifications}
               onHide={toggleNotifications}
@@ -517,8 +546,10 @@ const ProfilePage = () => {
                 )}
               </Modal.Body>
             </Modal>
+            )}
 
             {/* Deadlines Panel */}
+            {notificationSettings.deadlineNotifications && (
             <Modal
               show={showDeadlines}
               onHide={toggleDeadlines}
@@ -554,6 +585,7 @@ const ProfilePage = () => {
                 )}
               </Modal.Body>
             </Modal>
+            )}
 
             {/* Followers & Following Buttons */}
             <div className="d-flex justify-content-center flex-wrap gap-2 mt-2 mb-3">

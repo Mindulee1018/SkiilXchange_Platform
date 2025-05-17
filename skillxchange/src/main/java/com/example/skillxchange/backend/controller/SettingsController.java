@@ -26,17 +26,17 @@ public class SettingsController {
 
     // Update user settings
     @PutMapping("/{userId}")
-    public ResponseEntity<?> updateUserSettings(@PathVariable String userId, @RequestBody UserSettings updated) {
+    public ResponseEntity<?> updateUserSettings(@PathVariable String userId, @RequestBody UserSettings newSettings) {
         UserSettings settings = settingsRepository.findByUserId(userId)
                 .orElseGet(() -> {
-                    updated.setUserId(userId);
-                    return updated;
+                    newSettings.setUserId(userId);
+                    return newSettings;
                 });
-
-        settings.setCommentNotifications(updated.isCommentNotifications());
-        settings.setLikeNotifications(updated.isLikeNotifications());
-        settings.setProgressUpdateNotifications(updated.isProgressUpdateNotifications());
-        settings.setDeadlineNotifications(updated.isDeadlineNotifications());
+        settings.setUserId(userId);
+        settings.setCommentNotifications(newSettings.isCommentNotifications());
+        settings.setLikeNotifications(newSettings.isLikeNotifications());
+        settings.setProgressUpdateNotifications(newSettings.isProgressUpdateNotifications());
+        settings.setDeadlineNotifications(newSettings.isDeadlineNotifications());
 
         return ResponseEntity.ok(settingsRepository.save(settings));
     }

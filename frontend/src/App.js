@@ -28,6 +28,7 @@ import PublicPlansPage from "./pages/plan/PublicPlansPage";
 import ForYouPage from "./pages/common/ForYouPage";
 import ProgressPage from "./pages/plan/ProgressPage";
 import AchievementsPage from "./pages/plan/AchievementsPage";
+import SettingsPage from "./components/SettingsPage";
 
 function App() {
   const snap = useSnapshot(state); // 👈 Add this line
@@ -54,6 +55,7 @@ function App() {
         <Route path="/plans/progress/:planId" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
         <Route path="/FriendsPost" element={<ProtectedRoute><FriendsPost /></ProtectedRoute>}/>
         <Route path="/achievements" element={<ProtectedRoute><AchievementsPage /></ProtectedRoute>}/>
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage userId={snap.userId} /></ProtectedRoute>} />
       </Routes>
 
     
