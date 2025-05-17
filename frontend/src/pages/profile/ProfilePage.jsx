@@ -897,8 +897,7 @@ const ProfilePage = () => {
                 post={selectedPost}
               />
             )}
-            </>
-            )}
+
 
             {activeTab === "posts" && (
             <>
