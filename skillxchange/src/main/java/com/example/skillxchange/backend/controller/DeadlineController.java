@@ -29,6 +29,14 @@ public class DeadlineController {
         Date next24Hours = cal.getTime();
 
         // Get deadlines for user within next 24 hours that are not notified yet
-        return deadlineRepository.findByUserIdAndDueDateBetweenAndNotifiedFalse(userId, now, next24Hours);
+        System.out.println("Now: " + now);
+        System.out.println("Next 24h: " + next24Hours);
+        System.out.println("Fetching deadlines for userId: '" + userId + "'");
+        List<Deadline> result = deadlineRepository.findByUserId(userId);
+        for (Deadline d : result) {
+            System.out.println("Due: " + d.getDueDate() + ", Notified: " + d.isNotified());
+        }
+        System.out.println("Result: " + result.size());
+        return result;
     }
 }

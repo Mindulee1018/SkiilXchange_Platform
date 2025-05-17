@@ -239,12 +239,24 @@ const ProfilePage = () => {
 
   const fetchDeadlines = async (userId) => {
     try {
-      const response = await axios.get(`/api/deadlines/user/${userId}`);
-      setDeadlines(response.data);
-    } catch (error) {
-      console.error('Failed to fetch deadlines', error);
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `http://localhost:8080/api/deadlines/user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setDeadlines(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch deadlines", err);
     }
   };
+
 
 
   useEffect(() => {
@@ -252,7 +264,7 @@ const ProfilePage = () => {
       fetchPublicPlans();
       fetchFollowersAndFollowing();
       fetchProgressUpdates();
-      fetchDeadlines();
+      fetchDeadlines(profile.id);
     }
   }, [profile]);
 
@@ -373,7 +385,7 @@ const ProfilePage = () => {
                               padding: '10px',
                             }}
                           >
-                            <strong>{deadline.taskName || 'Unnamed Task'}</strong>
+                            <strong>{deadline.taskTitle || 'Unnamed Task'}</strong>
                             <br />
                             Due: {new Date(deadline.dueDate).toLocaleString()}
                           </div>
