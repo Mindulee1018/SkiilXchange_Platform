@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -62,46 +63,51 @@ public class SkillPostController {
     }*/
 
     //upload user with media
-    @PostMapping("/upload")
-    public ResponseEntity<SkillPost> uploadPostWithMedia(
-            @RequestParam("username") String username,
-            @RequestParam("Description") String description,
-            @RequestParam("FilePath") MultipartFile file) {
+   @PostMapping("/upload/multi")
+public ResponseEntity<SkillPost> uploadMultipleMedia(
+        @RequestParam("username") String username,
+        @RequestParam("Description") String description,
+        @RequestParam("FilePath") List<MultipartFile> files) {
 
-        try {
-            // 1. Look up the User by username
-            Optional<User> userOpt = userRepository.findByUsername(username);
-            if (userOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-            }
-            User user = userOpt.get();
+    try {
+        Optional<User> userOpt = userRepository.findByUsername(username);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        User user = userOpt.get();
 
-            // save the file to /uploads
-            String uploadDir = System.getProperty("user.dir") + "/uploads/";
+        String uploadDir = System.getProperty("user.dir") + "/uploads/";
+        Files.createDirectories(Paths.get(uploadDir));
+
+        List<String> mediaLink = new ArrayList<>();
+        List<String> mediaType = new ArrayList<>();
+
+        for (MultipartFile file : files) {
             String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
             Path filePath = Paths.get(uploadDir, fileName);
-            Files.createDirectories(filePath.getParent());
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
             String mimeType = Files.probeContentType(filePath);
 
-
-            // Create the SkillPost
-            SkillPost post = new SkillPost();
-            post.setUserId(user.getId());
-            post.setContentDescription(description);
-            post.setMediaLink("uploads/" + fileName);
-            post.setMediaType(mimeType);
-            post.setTimestamp(new Date());    // also good to set a timestamp here
-
-            //save the post
-            SkillPost saved = postService.createPost(post);
-            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
-
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            mediaLink.add("uploads/" + fileName);
+            mediaType.add(mimeType);
         }
+
+        SkillPost post = new SkillPost();
+        post.setUserId(user.getId());
+        post.setContentDescription(description);
+        post.setTimestamp(new Date());
+        post.setMediaLink(mediaLink);
+        post.setMediaType(mediaType);
+
+        SkillPost saved = postService.createPost(post);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+
+    } catch (IOException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
+}
+
 
     //delete the post
     @DeleteMapping("/{postId}")
@@ -121,4 +127,7 @@ public class SkillPostController {
                 .map(existing -> ResponseEntity.ok(postService.updatePost(existing, updatedPost)))
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+
+
+    
 }

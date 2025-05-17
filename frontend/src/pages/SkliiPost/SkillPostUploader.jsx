@@ -24,10 +24,10 @@ const SkillPostUploader = () => {
       message.error("Please upload at least one media file.");
       return;
     }
-  
+
     try {
       setLoading(true);
-  
+
       // The post is already created during media upload
       message.success("Post created successfully!");
       form.resetFields();
@@ -76,44 +76,45 @@ const SkillPostUploader = () => {
     const files = fileList.map(f => f.originFileObj).filter(Boolean);
     const hasVideo = files.some(f => f.type.startsWith("video"));
 
-    if (hasVideo && files.length > 1) {
-      setError("Only one video is allowed per post.");
-      return;
-    }
-
     if (hasVideo) {
-      try {
-        await validateVideoDuration(files[0]);
-      } catch (err) {
-        setError(err);
-        return;
+      for (const file of files.filter(f => f.type.startsWith("video"))) {
+        try {
+          await validateVideoDuration(file);
+        } catch (err) {
+          setError(err);
+          return;
+        }
       }
     }
 
     try {
       setMediaUploading(true);
-      const mediaData = [];
 
+      const formData = new FormData();
       for (const file of files) {
-        const formData = new FormData();
         formData.append("FilePath", file);
-        formData.append("username", profile.username);
-        formData.append("Description", form.getFieldValue("contentDescription") || "");
-
-        const response = await fetch("http://localhost:8080/api/posts/upload", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
-
-        if (!response.ok) throw new Error("Upload failed");
-
-        const savedPost = await response.json();
-        mediaData.push({
-          url: `/${savedPost.mediaLink}`,
-          type: savedPost.mediaType,
-        });
       }
+      formData.append("username", profile.username);
+      formData.append("Description", form.getFieldValue("contentDescription") || "");
+
+      const response = await fetch("http://localhost:8080/api/posts/uploads", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const savedPost = await response.json();
+
+
+      const mediaData = Array.isArray(savedPost.mediaLink)
+        ? savedPost.mediaLink.map((link, index) => ({
+          url: `/${link}`,
+          type: savedPost.mediaType?.[index]?.split("/")[0] || "unknown",
+        }))
+        : [];
+
 
       setMediaURLs(mediaData);
     } catch (err) {
@@ -123,6 +124,7 @@ const SkillPostUploader = () => {
       setMediaUploading(false);
     }
   };
+
 
   return (
     <Modal

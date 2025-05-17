@@ -102,22 +102,32 @@ const MyPost = () => {
                   <div className="card-body d-flex flex-column">
                     <p className="text-dark mb-2">{post.contentDescription}</p>
 
-                    {post.mediaType?.startsWith("image") && (
-                      <img
-                        src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
-                        alt="Post"
-                        className="img-fluid rounded mb-3"
-                        style={{ objectFit: "cover", height: "200px" }}
-                      />
-                    )}
+                    {/* Render multiple media files */}
+                    {post.mediaLinks?.length > 0 && (
+                      <div className="d-flex flex-wrap gap-2 mb-3">
+                        {post.mediaLinks.map((link, index) => {
+                          const type = post.mediaTypes?.[index]?.split("/")[0];
+                          const fullUrl = `http://localhost:8080/${link.replace(/^\/?/, "")}`;
 
-                    {post.mediaType?.startsWith("video") && (
-                      <video
-                        controls
-                        src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
-                        className="w-100 mb-3 rounded"
-                        style={{ height: "200px" }}
-                      />
+                          return type === "image" ? (
+                            <img
+                              key={index}
+                              src={fullUrl}
+                              alt={`media-${index}`}
+                              className="img-fluid rounded"
+                              style={{ width: "100%", height: 200, objectFit: "cover" }}
+                            />
+                          ) : (
+                            <video
+                              key={index}
+                              controls
+                              src={fullUrl}
+                              className="w-100 rounded"
+                              style={{ height: 200 }}
+                            />
+                          );
+                        })}
+                      </div>
                     )}
 
                     <small className="text-muted mb-3 mt-auto">

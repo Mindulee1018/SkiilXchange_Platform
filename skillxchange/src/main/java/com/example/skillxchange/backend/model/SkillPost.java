@@ -3,6 +3,7 @@ package com.example.skillxchange.backend.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Date;
+import java.util.List;
 
 @Document(collection = "posts")
 public class SkillPost {
@@ -11,8 +12,9 @@ public class SkillPost {
     private String userId;
     private Date timestamp;
     private String contentDescription;
-    private String mediaLink;
-    private String mediaType;
+    private List<String> mediaLink;
+    private List<String> mediaType;
+    
 
     // Getters
     public String getId() {
@@ -31,11 +33,11 @@ public class SkillPost {
         return contentDescription;
     }
 
-    public String getMediaLink() {
+    public List<String> getMediaLink() {
         return mediaLink;
     }
 
-    public String getMediaType() {
+    public List<String> getMediaType() {
         return mediaType;
     }
 
@@ -56,11 +58,16 @@ public class SkillPost {
         this.contentDescription = contentDescription;
     }
 
-    public void setMediaLink(String mediaLink) {
+    public void setMediaLink(List<String> mediaLink) {
         this.mediaLink = mediaLink;
     }
 
-    public void setMediaType(String mediaType) {
+    public void setMediaType(List<String> mediaType) {
         this.mediaType = mediaType;
+    }
+
+    public void setMediaLinks(List<String> mediaLinks) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setMediaLinks'");
     }
 }
