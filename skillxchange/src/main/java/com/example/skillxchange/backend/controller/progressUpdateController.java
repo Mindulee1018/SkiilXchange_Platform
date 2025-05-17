@@ -24,8 +24,6 @@ public class progressUpdateController {
 
     // GET /api/ProgressUpdate - Get progress updates (notifications) for logged-in
     // user
-    // GET /api/progress-update - Get progress updates (notifications) for logged-in
-    // user
     @GetMapping("/ProgressUpdate")
     public ResponseEntity<?> getProgressUpdatesForCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
