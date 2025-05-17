@@ -5,6 +5,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: box-shadow 0.3s ease;
+  margin-bottom: 20px;
 }
 
 .my-post:hover {
@@ -79,28 +80,19 @@
   transform: rotate(10deg) scale(1.1);
 }
 
-.my-post {
-    background: #6d3a3a;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    margin-bottom: 20px;
-}
-
 .interaction-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    color: #555;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #555;
 }
 
 .interaction-button.liked {
-    color: #1890ff; /* or whatever color you want for liked */
+  color: #1890ff; /* or whatever color you want for liked */
 }
 
 .interaction-button:hover {
-    opacity: 0.8;
+  opacity: 0.8;
 }
-

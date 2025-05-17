@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useSnapshot } from "valtio";
 import { Modal, message, Button, Tooltip } from "antd";
-import {
-  LikeOutlined,
-  LikeFilled,
-  CommentOutlined,
-} from "@ant-design/icons";
+import { LikeOutlined, LikeFilled, CommentOutlined } from "@ant-design/icons";
 import { Col, Row } from "react-bootstrap";
+
 import Navbar from "../../components/common/navbar";
 import SkillPostUploader from "./SkillPostUploader";
 import EditPostModal from "./EditPostModal";
@@ -15,24 +12,21 @@ import LikeService from "../../services/LikeService";
 import useProfile from "../../hooks/useProfile";
 import CommentSection from "../../pages/comment/CommentSection";
 import state from "../../util/Store";
+
 import "../../Styles/MyPost.css";
 import "antd/dist/reset.css";
 
 const MyPost = () => {
   const snap = useSnapshot(state);
   const { profile } = useProfile();
+
   const [userPosts, setUserPosts] = useState([]);
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
-  const [likes, setLikes] = useState({});
-  const [userLikes, setUserLikes] = useState(new Set());
+  const [likes, setLikes] = useState({}); // { postId: [likes] }
+  const [userLikes, setUserLikes] = useState(new Set()); // postIds liked by current user
 
-  useEffect(() => {
-    if (profile?.id) {
-      fetchUserPosts(profile.id);
-    }
-  }, [profile, snap.uploadPostModalOpened, snap.editPostModalOpened]);
-
+  // Fetch posts of current user & their likes
   const fetchUserPosts = async (userId) => {
     try {
       const token = localStorage.getItem("token");
@@ -48,9 +42,11 @@ const MyPost = () => {
     }
   };
 
+  // Fetch likes for each post & track if user liked it
   const fetchLikesForPosts = async (posts) => {
     const allLikes = {};
     const userLikedPosts = new Set();
+
     for (const post of posts) {
       try {
         const likeList = await LikeService.getLikesByPostId(post.id);
@@ -65,6 +61,12 @@ const MyPost = () => {
     setLikes(allLikes);
     setUserLikes(userLikedPosts);
   };
+
+  useEffect(() => {
+    if (profile?.id) {
+      fetchUserPosts(profile.id);
+    }
+  }, [profile, snap.uploadPostModalOpened, snap.editPostModalOpened]);
 
   const handleEdit = (post) => {
     state.selectedPost = post;
@@ -92,6 +94,7 @@ const MyPost = () => {
     setCommentModalOpen(true);
   };
 
+  // Toggle like/unlike on a post
   const handleLikeToggle = async (postId) => {
     try {
       if (userLikes.has(postId)) {
@@ -126,22 +129,19 @@ const MyPost = () => {
       </div>
 
       <div className="container mt-5 pt-5">
-        {/* Create Post Card */}
-        <div className="text-center mb-5">
-          <div
-            className="card shadow-sm create-post-card border-primary mx-auto"
-            style={{ maxWidth: "600px", cursor: "pointer" }}
-            onClick={() => (state.uploadPostModalOpened = true)}
-          >
-            <div className="card-body d-flex flex-column align-items-center justify-content-center py-5">
-              <i className="fas fa-plus-circle fa-3x text-primary mb-3"></i>
-              <h5 className="card-title text-primary">
-                Share Your Skill With the Community
-              </h5>
-              <p className="card-text text-muted mb-0">
-                Click here to create a new skill-sharing post
-              </p>
-            </div>
+        <div
+          className="card shadow-sm create-post-card border-primary mx-auto"
+          style={{ maxWidth: "600px", cursor: "pointer" }}
+          onClick={() => (state.uploadPostModalOpened = true)}
+        >
+          <div className="card-body d-flex flex-column align-items-center justify-content-center py-5">
+            <i className="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+            <h5 className="card-title text-primary">
+              Share Your Skill With the Community
+            </h5>
+            <p className="card-text text-muted mb-0">
+              Click here to create a new skill-sharing post
+            </p>
           </div>
         </div>
 
@@ -151,9 +151,7 @@ const MyPost = () => {
         <h4 className="mb-4 text-center">Your Posts</h4>
 
         {userPosts.length === 0 ? (
-          <p className="text-center">
-            This user has not shared any skill posts.
-          </p>
+          <p className="text-center">This user has not shared any skill posts.</p>
         ) : (
           <Row>
             {userPosts.map((post) => (
