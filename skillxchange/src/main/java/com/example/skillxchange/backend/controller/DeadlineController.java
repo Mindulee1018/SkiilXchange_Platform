@@ -45,7 +45,8 @@ public class DeadlineController {
 
     //mark as completed the deadlines
     @PatchMapping("/user/{userId}/mark-completed/{deadlineId}")
-    public ResponseEntity<?> markDeadlineAsCompleted(@PathVariable String userId, @PathVariable Long deadlineId) {
+
+    public ResponseEntity<?> markDeadlineAsCompleted(@PathVariable String userId, @PathVariable String deadlineId) {
         Optional<Deadline> optionalDeadline = deadlineRepository.findByIdAndUserId(deadlineId,
                 userId);
 

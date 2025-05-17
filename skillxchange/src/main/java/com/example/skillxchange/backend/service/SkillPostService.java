@@ -6,6 +6,7 @@ import com.example.skillxchange.backend.repository.SkillPostRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class SkillPostService {
@@ -49,5 +50,13 @@ public class SkillPostService {
             existingPost.setContentDescription(updatedPost.getContentDescription());
         }
         return postRepository.save(existingPost);
+    }
+
+    public List<SkillPost> getRecentPosts() {
+        return postRepository.findTop10ByOrderByTimestampDesc();
+    }
+
+    public List<SkillPost> getPostsByUserIds(Set<String> userIds) {
+        return postRepository.findByUserIdIn(userIds);
     }
 }
