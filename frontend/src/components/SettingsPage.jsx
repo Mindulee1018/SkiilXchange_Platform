@@ -4,8 +4,8 @@ import Navbar from "./common/navbar";
 import useProfile from "../hooks/useProfile";
 
 const SettingsPage = () => {
-  const { user } = useProfile(); // fetch user from hook
-  const userId = user?.id;
+  const { profile } = useProfile(); // fetch user from hook
+  const userId = profile?.id;
 
   const [settings, setSettings] = useState({
     commentNotifications: true,
