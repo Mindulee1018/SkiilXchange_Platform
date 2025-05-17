@@ -2,6 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Navbar from "../../components/common/navbar";
+import "../../Styles/MyPost.css";
+import CommentSection from "../../pages/comment/CommentSection";
+import { useSnapshot } from "valtio";
+import state from "../../util/Store";
 
 function parseJwt(token) {
   if (!token) return {};
@@ -21,6 +25,11 @@ const UserProfilePage = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [userPosts, setUserPosts] = useState([]);
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const snap = useSnapshot(state);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [activeTab, setActiveTab] = useState("plans");
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -62,6 +71,22 @@ const UserProfilePage = () => {
       }
     };
 
+    const fetchUserPosts = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`http://localhost:8080/api/posts/user/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch posts");
+
+        const posts = await res.json();
+        setUserPosts(posts);
+      } catch (err) {
+        console.error("Error fetching user's posts:", err);
+      }
+    };
+
     const checkIfFollowing = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -86,6 +111,7 @@ const UserProfilePage = () => {
       fetchUserProfile();
       fetchUserPublicPlans();
       checkIfFollowing();
+      fetchUserPosts();
     }
     setLoading(false);
   }, [id]);
@@ -111,6 +137,11 @@ const UserProfilePage = () => {
     } catch (err) {
       console.error('Error updating follow status:', err);
     }
+  };
+
+  const openCommentModal = (post) => {
+    setSelectedPost(post);
+    setCommentModalOpen(true);
   };
 
   if (loading) return <div className="container mt-5">Loading...</div>;
@@ -140,6 +171,24 @@ const UserProfilePage = () => {
           </div>
         )}
 
+         <div className="d-flex justify-content-center mt-4 mb-3">
+            <button
+              className={`btn btn-sm mx-2 ${activeTab === "plans" ? "btn-primary" : "btn-outline-primary"}`}
+              onClick={() => setActiveTab("plans")}
+            >
+              Learning Plans
+            </button>
+            <button
+              className={`btn btn-sm mx-2 ${activeTab === "posts" ? "btn-primary" : "btn-outline-primary"}`}
+              onClick={() => setActiveTab("posts")}
+            >
+              Skill Posts
+            </button>
+          </div>
+
+        {/* Public Learning Plans */}
+        {activeTab === "plans" && (
+        <>  
         <h4 className="mb-3">Learning Plans</h4>
         {publicPlans.length === 0 ? (
           <p>This user has no public plans.</p>
@@ -163,6 +212,66 @@ const UserProfilePage = () => {
             ))}
           </div>
         )}
+        </>
+        )}
+
+        {activeTab === "posts" && (
+        <>
+        <h4 className="mb-3">Skill Posts</h4>
+        {userPosts.length === 0 ? (
+          <p>This user has not shared any skill posts.</p>
+        ) : (
+          <div className="row">
+            {userPosts.map((post) => (
+              <div key={post.id} className="col-12 col-sm-6 col-md-4 mb-4">
+                <div className="card h-100 shadow-sm post-card">
+                  <div className="card-body d-flex flex-column">
+                    <p className="text-dark mb-2">{post.contentDescription}</p>
+
+                    {post.mediaType?.startsWith("image") && (
+                      <img
+                        src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
+                        alt="Post"
+                        className="img-fluid rounded mb-3"
+                        style={{ objectFit: "cover", height: "200px" }}
+                      />
+                    )}
+
+                    {post.mediaType?.startsWith("video") && (
+                      <video
+                        controls
+                        src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
+                        className="w-100 mb-3 rounded"
+                        style={{ height: "200px" }}
+                      />
+                    )}
+
+                    <small className="text-muted mt-auto">
+                      Posted on {new Date(post.timestamp).toLocaleString()}
+                    </small>
+                    <div className="d-flex justify-content-between mt-2">
+                        <button className="btn btn-outline-secondary btn-sm" onClick={() => openCommentModal(post)}>Comment</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        </>
+        )}
+           {/* Comment Modal */}
+                {selectedPost && (
+                  <CommentSection
+                    open={commentModalOpen}
+                    onClose={() => setCommentModalOpen(false)}
+                    post={selectedPost}
+                  />
+                )}
+        {/* Skill Post Edit Modal */}
+            {snap.editPostModalOpened && (
+              <EditPostModal />
+            )}
       </div>
     </>
   );

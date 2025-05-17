@@ -80,6 +80,11 @@ const Navbar = () => {
               Your Posts
             </Link>
           </li>
+          <li className="nav-item">
+            <Link className="nav-link" to="/foryou">
+              For You
+            </Link>
+          </li>
         </ul>
 
         {profile ? (
