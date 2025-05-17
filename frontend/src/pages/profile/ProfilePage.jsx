@@ -22,6 +22,7 @@ const ProfilePage = () => {
   const [deadlines, setDeadlines] = useState([]);
   const [showDeadlines, setShowDeadlines] = useState(false);
   const [loadingDeadlines, setLoadingDeadlines] = useState(false);
+  const [deadlineTab, setDeadlineTab] = useState("incomplete");
 
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -279,6 +280,53 @@ const ProfilePage = () => {
     }
   };
 
+  const markDeadlineAsCompleted = async (deadlineId) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.patch(
+        `http://localhost:8080/api/deadlines/user/${userId}/mark-completed/${deadlineId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        // Refresh the deadline list after marking as completed
+        fetchDeadlines(); // make sure this function is defined
+      }
+    } catch (error) {
+      console.error("Error marking deadline as completed", error);
+    }
+  };
+
+
+  // const markDeadlineAsCompleted = async (deadlineId) => {
+  //   try {
+  //     const response = await fetch(
+  //       `http://localhost:8080/api/deadlines/user/${userId}/mark-completed/${deadlineId}`,
+  //       {
+  //         method: "PATCH",
+  //       }
+  //     );
+  //     if (response.ok) {
+  //       // Refresh deadlines
+  //       setDeadlines((prev) =>
+  //         prev.map((d) =>
+  //           d.id === deadlineId ? { ...d, completed: true } : d
+  //         )
+  //       );
+  //     } else {
+  //       console.error("Failed to mark deadline as completed");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //   }
+  // };
+
   const handleFileUpload = (e) => {
     setSelectedFile(e.target.files[0]);
   };
@@ -530,30 +578,68 @@ const ProfilePage = () => {
               <Modal.Header closeButton>
                 <Modal.Title>Upcoming Deadlines</Modal.Title>
               </Modal.Header>
-
               <Modal.Body style={{ maxHeight: "60vh", overflowY: "auto" }}>
                 {loadingDeadlines ? (
                   <p>Loading...</p>
                 ) : deadlines.length === 0 ? (
                   <p>No upcoming deadlines.</p>
                 ) : (
-                  <ul className="list-group">
-                    {deadlines.map((deadline) => (
-                      <li
-                        key={deadline.id}
-                        className="list-group-item small"
+                  <>
+                    {/* Tabs */}
+                    <div className="mb-3">
+                      <button
+                        className={`btn btn-sm me-2 ${deadlineTab === "incomplete" ? "btn-danger" : "btn-outline-danger"}`}
+                        onClick={() => setDeadlineTab("incomplete")}
                       >
-                        <strong>{deadline.taskTitle || "Unnamed Task"}</strong>
-                        <br />
-                        <small className="text-muted">
-                          Due: {new Date(deadline.dueDate).toLocaleString()}
-                        </small>
-                      </li>
-                    ))}
-                  </ul>
+                        Incomplete
+                      </button>
+                      <button
+                        className={`btn btn-sm ${deadlineTab === "all" ? "btn-danger" : "btn-outline-danger"}`}
+                        onClick={() => setDeadlineTab("all")}
+                      >
+                        All
+                      </button>
+                    </div>
+
+                    {/* Deadline List */}
+                    <ul className="list-group">
+                      {(deadlineTab === "incomplete"
+                        ? deadlines.filter((d) => !d.completed)
+                        : deadlines
+                      ).map((deadline) => (
+                        <li
+                          key={deadline.id}
+                          className={`list-group-item small ${deadline.completed ? "bg-light" : "bg-white"}`}
+                        >
+                          <strong>{deadline.taskTitle || "Unnamed Task"}</strong>
+                          <br />
+                          <small className="text-muted">
+                            Due: {new Date(deadline.dueDate).toLocaleString()}
+                          </small>
+                          <br />
+                          <strong>Status:</strong> {deadline.completed ? "Completed" : "Pending"}
+                          {!deadline.completed && (
+                            <div className="mt-1">
+                              <button
+                                className="btn btn-sm btn-danger"
+                                onClick={() => markDeadlineAsCompleted(deadline.id)}
+                              >
+                                Mark as Complete
+                              </button>
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                      {deadlineTab === "incomplete" &&
+                        deadlines.filter((d) => !d.completed).length === 0 && (
+                          <p>No incomplete deadlines.</p>
+                        )}
+                    </ul>
+                  </>
                 )}
               </Modal.Body>
             </Modal>
+
 
             {/* Followers & Following Buttons */}
             <div className="d-flex justify-content-center flex-wrap gap-2 mt-2 mb-3">
