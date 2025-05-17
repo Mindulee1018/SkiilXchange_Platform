@@ -366,6 +366,8 @@ public class LearningPlanController {
         combined.addAll(tagPlans);
         combined.addAll(recentPlans);
 
+        combined.removeIf(plan -> plan.getUserId().equals(user.getId()));
+
         return ResponseEntity.ok(combined);
     }
 

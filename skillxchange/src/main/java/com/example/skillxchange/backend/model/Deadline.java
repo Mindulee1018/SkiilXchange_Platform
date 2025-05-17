@@ -16,6 +16,8 @@ public class Deadline {
     private Date dueDate;
     private String notificationMessage;
     private boolean notified = false;
+    private boolean completed;
+    
 
     // Constructors
     public Deadline() {}
@@ -27,6 +29,8 @@ public class Deadline {
         this.notified = notified;
         this.notificationMessage = notificationMessage;
     }
+
+    public String getId() {return id;}
 
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
@@ -47,4 +51,12 @@ public class Deadline {
 
     public boolean isNotified() { return notified; }    
     public void setNotified(boolean notified) { this.notified = notified; } 
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
 }
