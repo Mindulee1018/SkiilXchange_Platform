@@ -2,6 +2,7 @@ package com.example.skillxchange.backend.repository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
@@ -15,4 +16,5 @@ public interface DeadlineRepository extends MongoRepository<Deadline, String> {
     List<Deadline> findByDueDateBetweenAndNotifiedFalse(Date from, Date to);
     List<Deadline> findByUserIdAndDueDateBetweenAndNotifiedFalse(String userId, Date start, Date end);
     List<Deadline> findByUserId(String userId);
+    Optional<Deadline> findByIdAndUserId(String id, String userId);
 }
