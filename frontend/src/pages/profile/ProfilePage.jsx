@@ -1140,7 +1140,7 @@ const ProfilePage = () => {
                     <Form.Label>Profile Picture</Form.Label>
                     <Form.Control type="file" name="profilePicture" onChange={handleFileUpload} accept="image/*" />
                   </Form.Group>
-                  <Button type="submit" variant="primary">Save Changes</Button>
+                  <button type="submit" variant="primary">Save Changes</button>
                 </Form>
               </Modal.Body>
             </Modal>
