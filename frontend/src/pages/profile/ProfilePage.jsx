@@ -1,7 +1,10 @@
 // pages/auth/ProfilePage.jsx
 import "../../Styles/MyPost.css";
+import "antd/dist/reset.css";
+import {message, Button, Tooltip } from "antd";
+import { LikeOutlined, LikeFilled, CommentOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
-import { Modal, Button } from "react-bootstrap";
+import { Modal} from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import useProfile from "../../hooks/useProfile";
 import Navbar from "../../components/common/navbar";
@@ -15,6 +18,7 @@ import { useSnapshot } from "valtio";
 import PostService from "../../services/PostService";
 import CommentSection from "../comment/CommentSection";
 import EditPostModal from "../SkliiPost/EditPostModal";
+import LikeService from "../../services/LikeService";
 
 const ProfilePage = () => {
   const { profile, loading, error, refreshProfile } = useProfile();
@@ -47,6 +51,9 @@ const ProfilePage = () => {
   const snap = useSnapshot(state);
   const [selectedPost, setSelectedPost] = useState(null);
   const [userSettings, setUserSettings] = useState(null);
+
+  const [likes, setLikes] = useState({}); // { postId: [likes] }
+  const [userLikes, setUserLikes] = useState(new Set()); // postIds liked by current user
 
   const [editForm, setEditForm] = useState({
     username: "",
@@ -400,10 +407,31 @@ const ProfilePage = () => {
       if (!res.ok) throw new Error("Failed to fetch posts");
       const posts = await res.json();
       setUserPosts(posts);
+      fetchLikesForPosts(posts);
     } catch (err) {
       console.error("Error loading posts:", err);
     }
   };
+
+  // Fetch likes for each post & track if user liked it
+    const fetchLikesForPosts = async (posts) => {
+      const allLikes = {};
+      const userLikedPosts = new Set();
+  
+      for (const post of posts) {
+        try {
+          const likeList = await LikeService.getLikesByPostId(post.id);
+          allLikes[post.id] = likeList;
+          if (likeList.some((like) => like.userId === profile?.id)) {
+            userLikedPosts.add(post.id);
+          }
+        } catch (err) {
+          console.error(`Error fetching likes for post ${post.id}:`, err);
+        }
+      }
+      setLikes(allLikes);
+      setUserLikes(userLikedPosts);
+    };
 
   const handleEditPost = (post) => {
     state.selectedPost = post;
@@ -426,6 +454,34 @@ const ProfilePage = () => {
     setSelectedPost(post);
     setCommentModalOpen(true);
   };
+
+  // Toggle like/unlike on a post
+    const handleLikeToggle = async (postId) => {
+      try {
+        if (userLikes.has(postId)) {
+          await LikeService.deleteLikeByPostId(postId);
+          setUserLikes((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(postId);
+            return newSet;
+          });
+          setLikes((prev) => ({
+            ...prev,
+            [postId]: prev[postId].filter((like) => like.userId !== profile?.id),
+          }));
+        } else {
+          const newLike = await LikeService.createLike({ postId });
+          setUserLikes((prev) => new Set(prev).add(postId));
+          setLikes((prev) => ({
+            ...prev,
+            [postId]: [...(prev[postId] || []), newLike],
+          }));
+        }
+      } catch (error) {
+        console.error("Error toggling like:", error);
+        message.error("Failed to update like");
+      }
+    };
 
 
   const handleFileUpload = (e) => {
@@ -981,6 +1037,20 @@ const ProfilePage = () => {
                             </small>
 
                             <div className="d-flex justify-content-between mt-2">
+                              <Tooltip title="Like">
+                              <Button
+                                type="text"
+                                icon={
+                                  userLikes.has(post.id) ? (
+                                    <LikeFilled style={{ color: "#1890ff" }} />
+                                  ) : (
+                                    <LikeOutlined />
+                                  )
+                                }
+                                onClick={() => handleLikeToggle(post.id)}
+                              />
+                            </Tooltip>
+                            <span>{likes[post.id]?.length || 0} Likes</span>
                               <button className="btn btn-outline-primary btn-sm" onClick={() => handleEditPost(post)}>Edit</button>
                               <button className="btn btn-outline-danger btn-sm" onClick={() => handleDeletePost(post.id)}>Delete</button>
                               <button className="btn btn-outline-secondary btn-sm" onClick={() => openCommentModal(post)}>Comment</button>
