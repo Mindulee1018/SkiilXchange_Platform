@@ -50,7 +50,7 @@ function App() {
         <Route path="/user/:id" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
         <Route path="/mypost" element={<ProtectedRoute><MyPost /></ProtectedRoute>} />
         <Route path="/CommentCard" element={<ProtectedRoute><CommentCard /></ProtectedRoute>} />
-        <Route path="/plans/public" element={<ProtectedRoute><PublicPlansPage /></ProtectedRoute>} />
+        <Route path="/plans/public" element={<PublicPlansPage />}/>
         <Route path="/foryou" element={<ProtectedRoute><ForYouPage /></ProtectedRoute>} />
         <Route path="/plans/progress/:planId" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
         <Route path="/FriendsPost" element={<ProtectedRoute><FriendsPost /></ProtectedRoute>}/>

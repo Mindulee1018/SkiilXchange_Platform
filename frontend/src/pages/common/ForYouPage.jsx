@@ -16,6 +16,7 @@ const ForYouPage = () => {
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const snap = useSnapshot(state);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [usernames, setUsernames] = useState({});
 
   const openCommentModal = (post) => {
     setSelectedPost(post);
@@ -61,6 +62,30 @@ const ForYouPage = () => {
     fetchForYouPosts();
   }, []);
 
+  useEffect(() => {
+    const allUserIds = [...new Set([...plans.map(p => p.userId), ...posts.map(p => p.userId)])];
+    allUserIds.forEach(userId => {
+      if (!userId || usernames[userId]) return;
+
+      const fetchUsername = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch(`http://localhost:8080/api/auth/users/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setUsernames(prev => ({ ...prev, [userId]: data.username }));
+          }
+        } catch (err) {
+          console.error(`Failed to fetch username for userId=${userId}`, err);
+        }
+      };
+
+      fetchUsername();
+    });
+  }, [plans, posts, usernames]);
+
   return (
     <>
       <Navbar />
@@ -95,29 +120,59 @@ const ForYouPage = () => {
           {plans.map(plan => (
             <div key={plan.id} className="col-md-6 mb-4">
               <div
-                className="card h-100 shadow-sm"
-                onClick={() => navigate(`/plans/view/${plan.id}`)}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className="card-body">
-                  <h5 className="card-title">{plan.title}</h5>
-                  <h6 className="card-subtitle mb-2 text-muted">{plan.skill}</h6>
-                  <p className="card-text">{plan.description}</p>
+                  className="card h-100 border-0 shadow-sm plan-card"
+                  onClick={() => navigate(`/plans/view/${plan.id}`)}
+                  style={{ cursor: 'pointer', transition: '0.3s ease' }}
+                  onMouseEnter={e => e.currentTarget.classList.add('shadow-lg')}
+                  onMouseLeave={e => e.currentTarget.classList.remove('shadow-lg')}
+                >
+                  <div className="card-body">
+                    <h5 className="card-title fw-bold">{plan.title}</h5>
+                    <h6 className="card-subtitle mb-2 text-primary">{plan.skill}</h6>
+                    <p className="card-text text-muted">{plan.description}</p>
                   <div className="mb-2">
-                    {plan.tags?.map((tag, i) => (
-                      <span
-                        key={i}
-                        className="badge bg-secondary me-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/search?tag=${tag}`);
-                        }}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                    {plan.tags?.map((tag, i) => {
+                        const customColors = [
+                          '#6f42c1', '#20c997', '#fd7e14', '#0dcaf0',
+                          '#d63384', '#ffc107', '#198754', '#0d6efd'
+                        ];
+                        const bgColor = customColors[i % customColors.length];
+
+                        return (
+                          <span
+                            key={i}
+                            className="badge me-1 mb-1"
+                            onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/search?tag=${tag}`);
+                          }}
+                            style={{
+                              cursor: 'pointer',
+                              backgroundColor: bgColor,
+                              color: 'white',
+                              padding: '0.45em 0.7em',
+                              fontSize: '0.78rem',
+                              borderRadius: '0.6rem'
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        );
+                      })}
                   </div>
+                  <div className="text-muted small">
+                          By:{' '}
+                          <span
+                            className="text-primary"
+                            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/user/${plan.userId}`);
+                            }}
+                          >
+                            {usernames[plan.userId] || 'Loading...'}
+                          </span>
+                        </div>
                   <div className="text-muted small">
                     Created: {new Date(plan.createdAt).toLocaleDateString()}
                   </div>

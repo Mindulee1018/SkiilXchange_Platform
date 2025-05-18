@@ -11,6 +11,7 @@ const SearchPage = () => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(false);
   const [followedTags, setFollowedTags] = useState([]);
+  const [usernames, setUsernames] = useState({});
 
   const queryParams = new URLSearchParams(location.search);
   const tag = queryParams.get('tag') || '';
@@ -56,6 +57,32 @@ const SearchPage = () => {
         fetchFollowedTags();
       }
   }, [tag]);
+
+  useEffect(() => {
+    const uniqueUserIds = [...new Set(plans.map(plan => plan.userId))];
+    uniqueUserIds.forEach(userId => {
+      if (!userId || usernames[userId]) return;
+
+      const fetchUsername = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch(`http://localhost:8080/api/auth/users/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            setUsernames(prev => ({ ...prev, [userId]: data.username }));
+          }
+        } catch (err) {
+          console.error(`Failed to fetch username for userId=${userId}`, err);
+        }
+      };
+
+      fetchUsername();
+    });
+  }, [plans, usernames]);
+
 
   return (
     <>
@@ -104,19 +131,52 @@ const SearchPage = () => {
                   <h6 className="card-subtitle mb-2 text-muted">{plan.skill}</h6>
                   <p className="card-text">{plan.description}</p>
                   <div className="mb-2">
-                    {plan.tags?.map((t, i) => (
-                      <span
-                        key={i}
-                        className="badge bg-secondary me-1"
-                        style={{ cursor: 'pointer' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/search?tag=${t}`);
-                        }}
-                      >
-                        {t}
-                      </span>
-                    ))}
+                    {plan.tags?.map((tag, i) => {
+                          const customColors = [
+                            '#6f42c1', // purple
+                            '#20c997', // teal
+                            '#fd7e14', // orange
+                            '#0dcaf0', // cyan
+                            '#d63384', // pink
+                            '#ffc107', // yellow
+                            '#198754', // green
+                            '#0d6efd'  // blue
+                          ];
+                          const bgColor = customColors[i % customColors.length];
+
+                          return (
+                            <span
+                              key={i}
+                              className="badge me-1"
+                              onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/search?tag=${tag}`);
+                            }}
+                              style={{
+                                cursor: 'pointer',
+                                backgroundColor: bgColor,
+                                color: 'white',
+                                padding: '0.5em 0.75em',
+                                fontSize: '0.80rem'
+                              }}
+                            >
+                              {tag}
+                            </span>
+                          );
+                        })}
+                  </div>
+                  <div className="text-muted small">
+                    By:{' '}
+                    <span
+                      className="text-primary"
+                      style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/user/${plan.userId}`);
+                      }}
+                    >
+                      {usernames[plan.userId] || 'Loading...'}
+                    </span>
                   </div>
                   <div className="text-muted small">
                     {plan.isPublic ? '🌐 Public' : '🔒 Private'} • Created: {new Date(plan.createdAt).toLocaleDateString()}

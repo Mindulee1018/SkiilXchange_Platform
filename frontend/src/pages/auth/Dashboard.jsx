@@ -8,30 +8,64 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [publicPlans, setPublicPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [usernames, setUsernames] = useState({});
+
+   useEffect(() => {
+  const fetchPublicPlans = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const res = await fetch('http://localhost:8080/api/learning-plans/public', { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setPublicPlans(data);
+      } else {
+        console.error('Failed to load public plans');
+      }
+    } catch (err) {
+      console.error('Failed to fetch public plans', err);
+    } finally {
+      setLoading(false); // 🔥 Ensure loading is turned off
+    }
+  };
+
+  fetchPublicPlans();
+}, []);
+
 
   useEffect(() => {
-    const fetchPublicPlans = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8080/api/learning-plans/public", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+  const token = localStorage.getItem("token");
+  if (!token) return; // Don't fetch usernames if not logged in
 
-        if (res.ok) {
-          const data = await res.json();
-          setPublicPlans(data);
-        } else {
-          throw new Error("Failed to fetch public plans");
-        }
-      } catch (err) {
-        console.error("Error loading public plans:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const userIdsToFetch = publicPlans
+    .map(plan => plan.userId)
+    .filter((id, i, arr) => id && !usernames[id] && arr.indexOf(id) === i); // unique & not fetched
 
-    fetchPublicPlans();
-  }, []);
+  if (userIdsToFetch.length === 0) return;
+
+  const fetchAllUsernames = async () => {
+    try {
+      const updates = {};
+      await Promise.all(
+        userIdsToFetch.map(async (userId) => {
+          const res = await fetch(`http://localhost:8080/api/auth/users/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            updates[userId] = data.username;
+          }
+        })
+      );
+      setUsernames(prev => ({ ...prev, ...updates }));
+    } catch (err) {
+      console.error("Error fetching usernames in batch", err);
+    }
+  };
+
+  fetchAllUsernames();
+}, [publicPlans]);
 
 
   return (
@@ -97,14 +131,16 @@ const Dashboard = () => {
               {publicPlans.slice(0, 6).map((plan) => (
                 <div key={plan.id} className="col-md-6 mb-4">
                   <div
-                    className="card shadow-sm h-100"
-                    onClick={() => navigate(`/plans/view/${plan.id}`)}
-                    style={{ cursor: "pointer" }}
-                  >
+                  className="card h-100 border-0 shadow-sm plan-card"
+                  onClick={() => navigate(`/plans/view/${plan.id}`)}
+                  style={{ cursor: 'pointer', transition: '0.3s ease' }}
+                  onMouseEnter={e => e.currentTarget.classList.add('shadow-lg')}
+                  onMouseLeave={e => e.currentTarget.classList.remove('shadow-lg')}
+                >
                     <div className="card-body">
-                      <h5 className="card-title">{plan.title}</h5>
-                      <h6 className="card-subtitle mb-2 text-muted">{plan.skill}</h6>
-                      <p className="card-text">{plan.description}</p>
+                      <h5 className="card-title fw-bold">{plan.title}</h5>
+                      <h6 className="card-subtitle mb-2 text-primary">{plan.skill}</h6>
+                      <p className="card-text text-muted">{plan.description}</p>
                       <div className="text-muted small">
                         {plan.tags?.map((tag, i) => {
                           const customColors = [
@@ -123,7 +159,12 @@ const Dashboard = () => {
                             <span
                               key={i}
                               className="badge me-1"
+                              onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/search?tag=${tag}`);
+                            }}
                               style={{
+                                cursor: 'pointer',
                                 backgroundColor: bgColor,
                                 color: 'white',
                                 padding: '0.5em 0.75em',
@@ -135,6 +176,22 @@ const Dashboard = () => {
                           );
                         })}
                       </div>
+                      <div className="text-muted small">
+                      By:{' '}
+                      <span
+                        className="text-primary"
+                        style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/user/${plan.userId}`);
+                        }}
+                      >
+                        {usernames[plan.userId] || 'Loading...'}
+                      </span>
+                    </div>
+                    <div className="text-muted small">
+                      🗓️ Created on: {new Date(plan.createdAt).toLocaleDateString()}
+                    </div>
                     </div>
                   </div>
                 </div>
