@@ -29,6 +29,7 @@ class LikeService {
     }
   }
 
+  //create like
  async createLike({ postId }) {
   try {
     const config = this.getConfig();
