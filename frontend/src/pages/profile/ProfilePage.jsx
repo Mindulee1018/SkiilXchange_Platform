@@ -1,10 +1,10 @@
 // pages/auth/ProfilePage.jsx
 import "../../Styles/MyPost.css";
 import "antd/dist/reset.css";
-import {message, Button, Tooltip } from "antd";
+import { message, Button, Tooltip } from "antd";
 import { LikeOutlined, LikeFilled, CommentOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
-import { Modal} from "react-bootstrap";
+import { Modal } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import useProfile from "../../hooks/useProfile";
 import Navbar from "../../components/common/navbar";
@@ -36,6 +36,7 @@ const ProfilePage = () => {
 
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationTab, setNotificationTab] = React.useState("unread"); // 'unread' or 'all'
 
   const [progressUpdates, setProgressUpdates] = useState([]);
   const [showProgressUpdates, setShowProgressUpdates] = useState(false);
@@ -299,6 +300,40 @@ const ProfilePage = () => {
     }
   };
 
+  const markNotificationAsRead = async (notificationId) => {
+    const token = localStorage.getItem("token");
+    const userId = profile?.id;
+    if (!userId) {
+      console.error("User ID is not available");
+      return;
+    }
+    try {
+      const response = await axios.patch(
+        `http://localhost:8080/api/notifications/user/${userId}/mark-read/${notificationId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response.status === 200) {
+        setNotifications((prev) =>
+          prev.map((notification) =>
+            notification.id === notificationId
+              ? { ...notification, isRead: true }
+              : notification
+          )
+        );
+      } else {
+        console.error("Failed to mark notification as read");
+      }
+    } catch (error) {
+      console.error("Error marking notification as read", error);
+    }
+  };
+
   const markDeadlineAsCompleted = async (deadlineId) => {
     const token = localStorage.getItem("token");
     const userId = profile?.id;
@@ -414,24 +449,24 @@ const ProfilePage = () => {
   };
 
   // Fetch likes for each post & track if user liked it
-    const fetchLikesForPosts = async (posts) => {
-      const allLikes = {};
-      const userLikedPosts = new Set();
-  
-      for (const post of posts) {
-        try {
-          const likeList = await LikeService.getLikesByPostId(post.id);
-          allLikes[post.id] = likeList;
-          if (likeList.some((like) => like.userId === profile?.id)) {
-            userLikedPosts.add(post.id);
-          }
-        } catch (err) {
-          console.error(`Error fetching likes for post ${post.id}:`, err);
+  const fetchLikesForPosts = async (posts) => {
+    const allLikes = {};
+    const userLikedPosts = new Set();
+
+    for (const post of posts) {
+      try {
+        const likeList = await LikeService.getLikesByPostId(post.id);
+        allLikes[post.id] = likeList;
+        if (likeList.some((like) => like.userId === profile?.id)) {
+          userLikedPosts.add(post.id);
         }
+      } catch (err) {
+        console.error(`Error fetching likes for post ${post.id}:`, err);
       }
-      setLikes(allLikes);
-      setUserLikes(userLikedPosts);
-    };
+    }
+    setLikes(allLikes);
+    setUserLikes(userLikedPosts);
+  };
 
   const handleEditPost = (post) => {
     state.selectedPost = post;
@@ -456,32 +491,32 @@ const ProfilePage = () => {
   };
 
   // Toggle like/unlike on a post
-    const handleLikeToggle = async (postId) => {
-      try {
-        if (userLikes.has(postId)) {
-          await LikeService.deleteLikeByPostId(postId);
-          setUserLikes((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(postId);
-            return newSet;
-          });
-          setLikes((prev) => ({
-            ...prev,
-            [postId]: prev[postId].filter((like) => like.userId !== profile?.id),
-          }));
-        } else {
-          const newLike = await LikeService.createLike({ postId });
-          setUserLikes((prev) => new Set(prev).add(postId));
-          setLikes((prev) => ({
-            ...prev,
-            [postId]: [...(prev[postId] || []), newLike],
-          }));
-        }
-      } catch (error) {
-        console.error("Error toggling like:", error);
-        message.error("Failed to update like");
+  const handleLikeToggle = async (postId) => {
+    try {
+      if (userLikes.has(postId)) {
+        await LikeService.deleteLikeByPostId(postId);
+        setUserLikes((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(postId);
+          return newSet;
+        });
+        setLikes((prev) => ({
+          ...prev,
+          [postId]: prev[postId].filter((like) => like.userId !== profile?.id),
+        }));
+      } else {
+        const newLike = await LikeService.createLike({ postId });
+        setUserLikes((prev) => new Set(prev).add(postId));
+        setLikes((prev) => ({
+          ...prev,
+          [postId]: [...(prev[postId] || []), newLike],
+        }));
       }
-    };
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      message.error("Failed to update like");
+    }
+  };
 
 
   const handleFileUpload = (e) => {
@@ -759,25 +794,56 @@ const ProfilePage = () => {
               </Modal.Header>
 
               <Modal.Body style={{ maxHeight: "60vh", overflowY: "auto" }}>
+                {/* Tabs for filtering */}
+                <div className="mb-3">
+                  <button
+                    className={`btn btn-sm me-2 ${notificationTab === "all" ? "btn-primary" : "btn-outline-primary"}`}
+                    onClick={() => setNotificationTab("all")}
+                  >
+                    All
+                  </button>
+                  <button
+                    className={`btn btn-sm me-2 ${notificationTab === "unread" ? "btn-danger" : "btn-outline-danger"}`}
+                    onClick={() => setNotificationTab("unread")}
+                  >
+                    Unread
+                  </button>
+                  <button
+                    className={`btn btn-sm me-2 ${notificationTab === "read" ? "btn-success" : "btn-outline-success"}`}
+                    onClick={() => setNotificationTab("read")}
+                  >
+                    Read
+                  </button>
+                </div>
+
                 {notifications.length === 0 ? (
                   <p>No notifications yet.</p>
                 ) : (
                   <ul className="list-group">
-                    {notifications.map((notification, index) => (
+                    {(notificationTab === "unread"
+                      ? notifications.filter((n) => !n.read)
+                      : notificationTab === "read"
+                        ? notifications.filter((n) => n.read)
+                        : notifications
+                    ).map((notification, index) => (
                       <li
-                        key={index}
-                        className="list-group-item small bg-white"
+                        key={notification.id || index}
+                        className={`list-group-item small ${notification.read ? "bg-light" : "bg-white"}`}
                       >
-                        <strong>{notification.title || "Notification"}</strong>
-                        <br />
-                        <span>
-                          {notification.message || notification.content || "You have a new update."}
-                        </span>
+                        <strong>{notification.message || notification.content || "You have a new update."}</strong>
                         <br />
                         <small className="text-muted">
                           {new Date(notification.timestamp).toLocaleString()}
                         </small>
-                        <div className="mt-2">
+                        <div className="mt-2 d-flex justify-content-between align-items-center">
+                          {!notification.read && (
+                            <button
+                              className="btn btn-sm btn-outline-success me-2"
+                              onClick={() => markNotificationAsRead(notification.id)}
+                            >
+                              Mark as Read
+                            </button>
+                          )}
                           <button
                             className="btn btn-sm btn-outline-danger"
                             onClick={() => handleDeleteNotification(notification.id)}
@@ -791,6 +857,7 @@ const ProfilePage = () => {
                 )}
               </Modal.Body>
             </Modal>
+
 
 
             {/* Deadlines Panel */}
@@ -1038,19 +1105,19 @@ const ProfilePage = () => {
 
                             <div className="d-flex justify-content-between mt-2">
                               <Tooltip title="Like">
-                              <Button
-                                type="text"
-                                icon={
-                                  userLikes.has(post.id) ? (
-                                    <LikeFilled style={{ color: "#1890ff" }} />
-                                  ) : (
-                                    <LikeOutlined />
-                                  )
-                                }
-                                onClick={() => handleLikeToggle(post.id)}
-                              />
-                            </Tooltip>
-                            <span>{likes[post.id]?.length || 0} Likes</span>
+                                <Button
+                                  type="text"
+                                  icon={
+                                    userLikes.has(post.id) ? (
+                                      <LikeFilled style={{ color: "#1890ff" }} />
+                                    ) : (
+                                      <LikeOutlined />
+                                    )
+                                  }
+                                  onClick={() => handleLikeToggle(post.id)}
+                                />
+                              </Tooltip>
+                              <span>{likes[post.id]?.length || 0} Likes</span>
                               <button className="btn btn-outline-primary btn-sm" onClick={() => handleEditPost(post)}>Edit</button>
                               <button className="btn btn-outline-danger btn-sm" onClick={() => handleDeletePost(post.id)}>Delete</button>
                               <button className="btn btn-outline-secondary btn-sm" onClick={() => openCommentModal(post)}>Comment</button>
