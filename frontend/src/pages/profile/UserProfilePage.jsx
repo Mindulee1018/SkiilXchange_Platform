@@ -31,8 +31,6 @@ const UserProfilePage = () => {
   const [selectedPost, setSelectedPost] = useState(null);
   const [activeTab, setActiveTab] = useState("plans");
 
-  const [notifications, setNotifications] = useState([]);
-
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {

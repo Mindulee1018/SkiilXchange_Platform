@@ -355,30 +355,41 @@ const ProfilePage = () => {
     }
   };
 
+  const handleDeleteNotification = async (notificationId) => {
+    const token = localStorage.getItem("token");
+    const userId = profile?.id;
 
+    if (!window.confirm("Are you sure you want to delete this notification?")) return;
 
-  // const markDeadlineAsCompleted = async (deadlineId) => {
-  //   try {
-  //     const response = await fetch(
-  //       `http://localhost:8080/api/deadlines/user/${userId}/mark-completed/${deadlineId}`,
-  //       {
-  //         method: "PATCH",
-  //       }
-  //     );
-  //     if (response.ok) {
-  //       // Refresh deadlines
-  //       setDeadlines((prev) =>
-  //         prev.map((d) =>
-  //           d.id === deadlineId ? { ...d, completed: true } : d
-  //         )
-  //       );
-  //     } else {
-  //       console.error("Failed to mark deadline as completed");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //   }
-  // };
+    if (!userId) {
+      alert("User ID not found. Please log in again.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/notifications/user/${userId}/delete/${notificationId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        setDeadlines((prev) => prev.filter((d) => d.id !== notificationId));
+      } else {
+        const errMsg = await response.text();
+        alert("Failed to delete notification: " + errMsg);
+      }
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      alert("Something went wrong.");
+    }
+  };
+
 
   const fetchUserPosts = async (userId) => {
     try {
@@ -686,22 +697,30 @@ const ProfilePage = () => {
                         key={index}
                         className="list-group-item small bg-white"
                       >
-                        <strong>{notification.title || "Notification"}</strong><br />
+                        <strong>{notification.title || "Notification"}</strong>
+                        <br />
                         <span>
-                          {notification.message ||
-                            notification.content ||
-                            "You have a new update."}
+                          {notification.message || notification.content || "You have a new update."}
                         </span>
                         <br />
                         <small className="text-muted">
                           {new Date(notification.createdAt).toLocaleString()}
                         </small>
+                        <div className="mt-2">
+                          <button
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={() => handleDeleteNotification(notification.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
                 )}
               </Modal.Body>
             </Modal>
+
 
             {/* Deadlines Panel */}
             <Modal
