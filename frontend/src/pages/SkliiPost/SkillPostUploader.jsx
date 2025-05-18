@@ -6,6 +6,8 @@ import state from "../../util/Store";
 import PostService from "../../services/PostService";
 import useProfile from "../../hooks/useProfile";
 import "../../Styles/SkillPostUploader.css";
+// import "../../Styles/SkillPostUploader.css";
+
 
 const { Title, Text } = Typography;
 
