@@ -19,6 +19,7 @@ class LikeService {
     };
   }
 
+  //get likes-postId
   async getLikesByPostId(postId) {
     try {
       const config = this.getConfig();
