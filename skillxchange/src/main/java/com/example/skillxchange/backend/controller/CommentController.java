@@ -80,6 +80,7 @@ public class CommentController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    //Update comments by Id
     @PutMapping("/{id}")
     public ResponseEntity<Comment> updateComment(@PathVariable String id, @RequestBody Comment commentDetails) {
         return commentService.updateComment(id, commentDetails)
