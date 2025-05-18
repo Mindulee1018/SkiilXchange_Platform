@@ -1,4 +1,3 @@
-// SkillPostController.java (Updated)
 package com.example.skillxchange.backend.controller;
 
 import java.io.IOException;
