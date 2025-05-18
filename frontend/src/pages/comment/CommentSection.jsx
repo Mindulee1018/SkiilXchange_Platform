@@ -91,6 +91,7 @@ const CommentSection = ({ open, onClose, post }) => {
     }
   };
 
+//delete comment
   const deleteComment = async (id) => {
     try {
       setCommentDeleting(true);
