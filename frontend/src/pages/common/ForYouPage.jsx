@@ -5,6 +5,10 @@ import "../../Styles/MyPost.css";
 import CommentSection from "../../pages/comment/CommentSection";
 import { useSnapshot } from "valtio";
 import state from "../../util/Store";
+import "antd/dist/reset.css";
+import {message, Button, Tooltip } from "antd";
+import { LikeOutlined, LikeFilled, CommentOutlined } from "@ant-design/icons";
+import LikeService from "../../services/LikeService";
 
 const ForYouPage = () => {
   const [plans, setPlans] = useState([]);
@@ -17,10 +21,40 @@ const ForYouPage = () => {
   const snap = useSnapshot(state);
   const [selectedPost, setSelectedPost] = useState(null);
   const [usernames, setUsernames] = useState({});
+  const [likes, setLikes] = useState({}); // { postId: [likes] }
+  const [userLikes, setUserLikes] = useState(new Set()); // postIds liked by current user
+  
 
   const openCommentModal = (post) => {
     setSelectedPost(post);
     setCommentModalOpen(true);
+  };
+
+  const handleLikeToggle = async (postId) => {
+    try {
+      if (userLikes.has(postId)) {
+        await LikeService.deleteLikeByPostId(postId);
+        setUserLikes((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(postId);
+          return newSet;
+        });
+        setLikes((prev) => ({
+          ...prev,
+          [postId]: prev[postId].filter((like) => like.userId !== profile?.id),
+        }));
+      } else {
+        const newLike = await LikeService.createLike({ postId });
+        setUserLikes((prev) => new Set(prev).add(postId));
+        setLikes((prev) => ({
+          ...prev,
+          [postId]: [...(prev[postId] || []), newLike],
+        }));
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      message.error("Failed to update like");
+    }
   };
 
   useEffect(() => {
@@ -53,10 +87,31 @@ const ForYouPage = () => {
         if (!res.ok) throw new Error('Failed to fetch For You posts');
         const data = await res.json();
         setPosts(data);
+        fetchLikesForPosts(posts);
       } catch (err) {
         console.error('Error loading For You posts', err);
       }
     };
+    // Fetch likes for each post & track if user liked it
+      const fetchLikesForPosts = async (posts) => {
+        const allLikes = {};
+        const userLikedPosts = new Set();
+    
+        for (const post of posts) {
+          try {
+            const likeList = await LikeService.getLikesByPostId(post.id);
+            allLikes[post.id] = likeList;
+            if (likeList.some((like) => like.userId === profile?.id)) {
+              userLikedPosts.add(post.id);
+            }
+          } catch (err) {
+            console.error(`Error fetching likes for post ${post.id}:`, err);
+          }
+        }
+        setLikes(allLikes);
+        setUserLikes(userLikedPosts);
+      };
+        
 
     fetchForYouPlans();
     fetchForYouPosts();
@@ -220,6 +275,20 @@ const ForYouPage = () => {
                         Posted on {new Date(post.timestamp).toLocaleString()}
                       </small>
                       <div className="d-flex justify-content-between mt-2">
+                        <Tooltip title="Like">
+                          <Button
+                            type="text"
+                            icon={
+                              userLikes.has(post.id) ? (
+                                <LikeFilled style={{ color: "#1890ff" }} />
+                              ) : (
+                                <LikeOutlined />
+                              )
+                            }
+                            onClick={() => handleLikeToggle(post.id)}
+                          />
+                        </Tooltip>
+                        <span>{likes[post.id]?.length || 0} Likes</span>
                         <button className="btn btn-outline-secondary btn-sm" onClick={() => openCommentModal(post)}>Comment</button>
                     </div>
                     </div>
