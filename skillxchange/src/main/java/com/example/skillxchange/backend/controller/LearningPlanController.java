@@ -292,11 +292,28 @@ public class LearningPlanController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid task index");
         }
 
-        plan.getTasks().get(taskIndex).setCompleted(false);
-        plan.getTasks().get(taskIndex).setCompletedAt(null);
+        Task task = plan.getTasks().get(taskIndex);
+        task.setCompleted(false);
+        task.setCompletedAt(null);
         learningPlanRepository.save(plan);
 
-        return ResponseEntity.ok().build();
+        // 🔍 Try to find and update the existing progress update
+        String userId = plan.getUserId();
+        String completedMsgPart = "Completed task: " + task.getTitle() + " in plan: " + plan.getTitle();
+
+        Optional<ProgressUpdate> existingUpdateOpt = progressUpdateRepository
+            .findTopByUserIdAndPlanIdAndMessageContaining(userId, plan.getId(), completedMsgPart);
+
+        if (existingUpdateOpt.isPresent()) {
+            ProgressUpdate existingUpdate = existingUpdateOpt.get();
+            existingUpdate.setMessage("Task was marked incomplete: " + task.getTitle() + " in plan: " + plan.getTitle());
+            progressUpdateRepository.save(existingUpdate);
+            notificationPublisher.sendPlanNotification(existingUpdate);
+        } else {
+            System.out.println("No existing progress update found for task: " + task.getTitle());
+        }
+
+        return ResponseEntity.ok("Task marked as incomplete");
     }
 
     //returning public plans by the user
