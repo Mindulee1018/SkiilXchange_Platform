@@ -338,8 +338,8 @@ const ProfilePage = () => {
         {
           method: "DELETE",
           headers: {
-              Authorization: `Bearer ${token}`, // ✅ missing earlier
-            },
+            Authorization: `Bearer ${token}`, // ✅ missing earlier
+          },
         }
       );
 
@@ -725,25 +725,33 @@ const ProfilePage = () => {
                     {/* Tabs */}
                     <div className="mb-3">
                       <button
+                        className={`btn btn-sm me-2 ${deadlineTab === "all" ? "btn-danger" : "btn-outline-danger"}`}
+                        onClick={() => setDeadlineTab("all")}
+                      >
+                        All
+                      </button>
+                      <button
                         className={`btn btn-sm me-2 ${deadlineTab === "incomplete" ? "btn-danger" : "btn-outline-danger"}`}
                         onClick={() => setDeadlineTab("incomplete")}
                       >
                         Incomplete
                       </button>
                       <button
-                        className={`btn btn-sm ${deadlineTab === "all" ? "btn-danger" : "btn-outline-danger"}`}
-                        onClick={() => setDeadlineTab("all")}
+                        className={`btn btn-sm me-2 ${deadlineTab === "completed" ? "btn-danger" : "btn-outline-danger"}`}
+                        onClick={() => setDeadlineTab("completed")}
                       >
-                        All
+                        Completed
                       </button>
+
                     </div>
 
                     {/* Deadline List */}
                     <ul className="list-group">
                       {(deadlineTab === "incomplete"
                         ? deadlines.filter((d) => !d.completed)
-                        : deadlines
-
+                        : deadlineTab === "completed"
+                          ? deadlines.filter((d) => d.completed)
+                          : deadlines
                       ).map((deadline) => {
                         console.log("Full deadline object:", JSON.stringify(deadline, null, 2));
 
@@ -759,22 +767,25 @@ const ProfilePage = () => {
                             </small>
                             <br />
                             <strong>Status:</strong> {deadline.completed ? "Completed" : "Pending"}
-                            {!deadline.completed && (
-                              <div className="mt-1">
+
+                            {/* Buttons */}
+                            <div className="mt-1">
+                              {!deadline.completed ? (
                                 <button
                                   className="btn btn-sm btn-danger"
                                   onClick={() => markDeadlineAsCompleted(deadline.id)}
                                 >
                                   Mark as Complete
                                 </button>
+                              ) : (
                                 <button
                                   className="btn btn-sm btn-outline-secondary"
                                   onClick={() => handleDeleteDeadline(deadline.id)}
                                 >
                                   Delete
                                 </button>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </li>
                         );
                       })}
@@ -783,6 +794,12 @@ const ProfilePage = () => {
                         deadlines.filter((d) => !d.completed).length === 0 && (
                           <p>No incomplete deadlines.</p>
                         )}
+
+                      {deadlineTab === "completed" &&
+                        deadlines.filter((d) => d.completed).length === 0 && (
+                          <p>No completed deadlines.</p>
+                        )}
+
                     </ul>
                   </>
                 )}
