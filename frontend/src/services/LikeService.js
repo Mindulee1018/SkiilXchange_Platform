@@ -19,6 +19,7 @@ class LikeService {
     };
   }
 
+  //get likes-postId
   async getLikesByPostId(postId) {
     try {
       const config = this.getConfig();
@@ -29,6 +30,7 @@ class LikeService {
     }
   }
 
+  //create like
  async createLike({ postId }) {
   try {
     const config = this.getConfig();
@@ -42,6 +44,7 @@ class LikeService {
   }
 }
 
+//delete like-postID
   async deleteLikeByPostId(postId) {
   try {
     const config = this.getConfig();

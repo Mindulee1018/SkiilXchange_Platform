@@ -72,6 +72,7 @@ public class CommentController {
         return commentService.getAllComments();
     }
 
+    //Get Comments by ID
     @GetMapping("/{id}")
     public ResponseEntity<Comment> getCommentById(@PathVariable String id) {
         return commentService.getCommentById(id)
@@ -79,6 +80,7 @@ public class CommentController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    //Update comments by Id
     @PutMapping("/{id}")
     public ResponseEntity<Comment> updateComment(@PathVariable String id, @RequestBody Comment commentDetails) {
         return commentService.updateComment(id, commentDetails)
@@ -86,6 +88,7 @@ public class CommentController {
                 .orElse(ResponseEntity.status(403).build());
     }
 
+    //Delete comments by Id
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteComment(@PathVariable String id) {
         return commentService.deleteComment(id)
@@ -93,6 +96,7 @@ public class CommentController {
                 : ResponseEntity.status(403).build();
     }
 
+    //Get comments of a post
     @GetMapping("/post/{postId}")
     public List<Comment> getCommentsByPostId(@PathVariable String postId) {
         return commentService.getCommentsByPostId(postId);

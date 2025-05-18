@@ -40,12 +40,14 @@ public class LikeController {
     @Autowired
     private UserRepository userRepository;
     
+    //Get likes 
     @GetMapping("/{postId}")
     public ResponseEntity<List<Like>> getLikesByPostId(@PathVariable String postId) {
         List<Like> likes = likeRepository.findByPostId(postId);
         return new ResponseEntity<>(likes, HttpStatus.OK);
     }
 
+    //Create likes
     @PostMapping("/{postId}")
     public ResponseEntity<?> createLike(@PathVariable String postId) {
         // Get authenticated user's ID from JWT

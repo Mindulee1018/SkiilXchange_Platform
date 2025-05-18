@@ -47,6 +47,7 @@ const CommentSection = ({ open, onClose, post }) => {
     loadData();
   }, [open, post]);
 
+  //create comment
   const createComment = async () => {
     if (!comment.trim()) {
       message.warning("Comment cannot be empty");
@@ -67,6 +68,7 @@ const CommentSection = ({ open, onClose, post }) => {
     }
   };
 
+//update comment
   const updateComment = async (id) => {
     if (!updatingCommentText.trim()) {
       message.warning("Comment cannot be empty");
@@ -89,6 +91,7 @@ const CommentSection = ({ open, onClose, post }) => {
     }
   };
 
+//delete comment
   const deleteComment = async (id) => {
     try {
       setCommentDeleting(true);
