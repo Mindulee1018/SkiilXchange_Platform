@@ -5,7 +5,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: box-shadow 0.3s ease;
-  margin-bottom: 20px;
+  margin-bottom: 21px;
 }
 
 .my-post:hover {

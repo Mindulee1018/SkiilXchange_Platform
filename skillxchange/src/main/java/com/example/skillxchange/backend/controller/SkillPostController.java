@@ -1,4 +1,3 @@
-// SkillPostController.java (Updated)
 package com.example.skillxchange.backend.controller;
 
 import java.io.IOException;
@@ -54,7 +53,7 @@ public class SkillPostController {
         return ResponseEntity.ok(postService.getAllPosts());
     }
 
-    //get posts by user
+    //get posts by user id
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<SkillPost>> getPostsByUserId(@PathVariable String userId) {
         return ResponseEntity.ok(postService.getPostsByUserId(userId));
