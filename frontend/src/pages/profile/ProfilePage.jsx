@@ -497,7 +497,7 @@ const ProfilePage = () => {
       <div className="container-fluid mt-5 px-2 px-md-4">
         <div className="row">
           {/* Sidebar */}
-          <div className="col-12 col-md-3 mb-4">
+          <div className="col-12 col-md-2 mb-4">
             <div className="position-sticky" style={{ top: "85px" }}>
               <ProfileSidebar
                 isCollapsed={isCollapsed}
