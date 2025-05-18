@@ -42,4 +42,19 @@ public class NotificationController {
         return ResponseEntity.ok("Notification deleted successfully.");
     }
 
+    @PatchMapping("/user/{userId}/mark-read/notificationId")
+    public ResponseEntity<?> markNotificationAsRead(@PathVariable String id) {
+        Optional<Notification> optionalNotification = notificationRepository.findById(id);
+
+        if (optionalNotification.isEmpty()) {
+            return ResponseEntity.status(404).body("Notification not found.");
+        }
+
+        Notification notification = optionalNotification.get();
+        notification.setRead(true); // Use the actual field name from your model
+        notificationRepository.save(notification);
+
+        return ResponseEntity.ok("Notification marked as read.");
+    }
+
 }
