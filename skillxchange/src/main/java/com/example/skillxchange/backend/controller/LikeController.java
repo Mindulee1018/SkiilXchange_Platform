@@ -40,6 +40,7 @@ public class LikeController {
     @Autowired
     private UserRepository userRepository;
     
+    //Get likes 
     @GetMapping("/{postId}")
     public ResponseEntity<List<Like>> getLikesByPostId(@PathVariable String postId) {
         List<Like> likes = likeRepository.findByPostId(postId);
