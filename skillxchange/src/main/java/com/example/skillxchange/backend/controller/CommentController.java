@@ -88,6 +88,7 @@ public class CommentController {
                 .orElse(ResponseEntity.status(403).build());
     }
 
+    //Delete comments by Id
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteComment(@PathVariable String id) {
         return commentService.deleteComment(id)
