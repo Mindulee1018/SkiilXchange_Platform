@@ -2,7 +2,7 @@
 import "../../Styles/MyPost.css";
 import React, { useEffect, useState } from "react";
 import { Modal, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useProfile from "../../hooks/useProfile";
 import Navbar from "../../components/common/navbar";
 import ProfileSidebar from "../../components/profile/ProfileSidebar";
@@ -24,7 +24,7 @@ const ProfilePage = () => {
   const [showFollowing, setShowFollowing] = useState(false);
   const [followersList, setFollowersList] = useState([]);
   const [followingList, setFollowingList] = useState([]);
-
+  const navigate = useNavigate();
   const [deadlines, setDeadlines] = useState([]);
   const [showDeadlines, setShowDeadlines] = useState(false);
   const [loadingDeadlines, setLoadingDeadlines] = useState(false);
@@ -646,13 +646,17 @@ const handleEditPost = (post) => {
               <div className="row">
                 {publicPlans.map((plan) => (
                   <div key={plan.id} className="col-12 col-sm-6 mb-4">
-                    <div className="card h-100 shadow-sm">
+                    <div
+                  className="card h-100 border-0 shadow-sm plan-card"
+                  onClick={() => navigate(`/plans/view/${plan.id}`)}
+                  style={{ cursor: 'pointer', transition: '0.3s ease' }}
+                  onMouseEnter={e => e.currentTarget.classList.add('shadow-lg')}
+                  onMouseLeave={e => e.currentTarget.classList.remove('shadow-lg')}
+                >
                       <div className="card-body">
-                        <h5 className="card-title">{plan.title}</h5>
-                        <h6 className="card-subtitle mb-2 text-muted">
-                          {plan.skill}
-                        </h6>
-                        <p className="card-text">{plan.description}</p>
+                        <h5 className="card-title fw-bold">{plan.title}</h5>
+                        <h6 className="card-subtitle mb-2 text-primary">{plan.skill}</h6>
+                        <p className="card-text text-muted">{plan.description}</p>
                         <div className="text-muted small">
                           {plan.tags?.map((tag, i) => {
                             const customColors = [
@@ -671,7 +675,12 @@ const handleEditPost = (post) => {
                               <span
                                 key={i}
                                 className="badge me-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/search?tag=${tag}`);
+                                }}
                                 style={{
+                                  cursor: 'pointer',
                                   backgroundColor: bgColor,
                                   color: 'white',
                                   padding: '0.5em 0.75em',

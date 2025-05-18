@@ -1,6 +1,6 @@
 // src/pages/auth/UserProfilePage.jsx
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/common/navbar";
 import "../../Styles/MyPost.css";
 import CommentSection from "../../pages/comment/CommentSection";
@@ -30,6 +30,7 @@ const UserProfilePage = () => {
   const snap = useSnapshot(state);
   const [selectedPost, setSelectedPost] = useState(null);
   const [activeTab, setActiveTab] = useState("plans");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -194,22 +195,58 @@ const UserProfilePage = () => {
           <p>This user has no public plans.</p>
         ) : (
           <div className="row">
-            {publicPlans.map(plan => (
-              <div key={plan.id} className="col-md-6 mb-4">
-                <div className="card h-100 shadow-sm">
-                  <div className="card-body">
-                    <h5 className="card-title">{plan.title}</h5>
-                    <h6 className="card-subtitle mb-2 text-muted">{plan.skill}</h6>
-                    <p className="card-text">{plan.description}</p>
-                    <div className="text-muted small">
-                      {plan.tags?.map((tag, i) => (
-                        <span key={i} className="badge bg-secondary me-1">{tag}</span>
-                      ))}
+            {publicPlans.map((plan) => (
+                  <div key={plan.id} className="col-12 col-sm-6 mb-4">
+                    <div
+                  className="card h-100 border-0 shadow-sm plan-card"
+                  onClick={() => navigate(`/plans/view/${plan.id}`)}
+                  style={{ cursor: 'pointer', transition: '0.3s ease' }}
+                  onMouseEnter={e => e.currentTarget.classList.add('shadow-lg')}
+                  onMouseLeave={e => e.currentTarget.classList.remove('shadow-lg')}
+                >
+                      <div className="card-body">
+                        <h5 className="card-title fw-bold">{plan.title}</h5>
+                        <h6 className="card-subtitle mb-2 text-primary">{plan.skill}</h6>
+                        <p className="card-text text-muted">{plan.description}</p>
+                        <div className="text-muted small">
+                          {plan.tags?.map((tag, i) => {
+                            const customColors = [
+                              '#6f42c1', // purple
+                              '#20c997', // teal
+                              '#fd7e14', // orange
+                              '#0dcaf0', // cyan
+                              '#d63384', // pink
+                              '#ffc107', // yellow
+                              '#198754', // green
+                              '#0d6efd'  // blue
+                            ];
+                            const bgColor = customColors[i % customColors.length];
+
+                            return (
+                              <span
+                                key={i}
+                                className="badge me-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/search?tag=${tag}`);
+                                }}
+                                style={{
+                                  cursor: 'pointer',
+                                  backgroundColor: bgColor,
+                                  color: 'white',
+                                  padding: '0.5em 0.75em',
+                                  fontSize: '0.80rem'
+                                }}
+                              >
+                                {tag}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                ))}
           </div>
         )}
         </>

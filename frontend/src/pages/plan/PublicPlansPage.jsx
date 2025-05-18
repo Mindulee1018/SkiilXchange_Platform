@@ -134,7 +134,12 @@ const PublicPlansPage = () => {
                           <span
                             key={i}
                             className="badge me-1 mb-1"
+                            onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/search?tag=${tag}`);
+                          }}
                             style={{
+                              cursor: 'pointer',
                               backgroundColor: bgColor,
                               color: 'white',
                               padding: '0.45em 0.7em',
