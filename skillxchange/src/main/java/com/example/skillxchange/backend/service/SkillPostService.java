@@ -3,10 +3,12 @@ package com.example.skillxchange.backend.service;
 import com.example.skillxchange.backend.model.SkillPost;
 import com.example.skillxchange.backend.repository.SkillPostRepository;
 //import org.springframework.beans.factory.annotation.Autowired;
+//import java.util.Optional;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+ 
 
 @Service
 public class SkillPostService {
