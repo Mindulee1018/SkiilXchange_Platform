@@ -43,7 +43,7 @@ const SkillPostUploader = () => {
       setLoading(false);
     }
   };
-
+//video validation
   const validateVideoDuration = (file) =>
     new Promise((resolve, reject) => {
       const video = document.createElement("video");
