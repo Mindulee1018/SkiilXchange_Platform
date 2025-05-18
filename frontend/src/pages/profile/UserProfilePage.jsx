@@ -11,7 +11,7 @@ function parseJwt(token) {
   if (!token) return {};
   const base64Url = token.split('.')[1];
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+  const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
   }).join(''));
 
@@ -91,16 +91,16 @@ const UserProfilePage = () => {
     const checkIfFollowing = async () => {
       try {
         const token = localStorage.getItem('token');
-    
+
         const res = await fetch(`http://localhost:8080/api/users/${id}/followers`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-    
+
         if (!res.ok) throw new Error('Failed to fetch followers');
-    
+
         const followersList = await res.json();
         const tokenUsername = parseJwt(token).sub; // 👈 extract your username from JWT
-    
+
         const isFollowing = followersList.some(follower => follower.username === tokenUsername);
         setIsFollowing(isFollowing);
       } catch (err) {
@@ -116,6 +116,21 @@ const UserProfilePage = () => {
     }
     setLoading(false);
   }, [id]);
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:8080/api/notifications`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const notificationsData = await res.json();
+        setNotifications(notificationsData);
+      }
+    } catch (error) {
+      console.error("Failed to fetch notifications", error);
+    }
+  };
 
   const handleFollowToggle = async () => {
     try {
@@ -134,11 +149,15 @@ const UserProfilePage = () => {
           ...prev,
           followers: prev.followers + (isFollowing ? -1 : 1)  // 👈 update follower count immediately
         }));
+        fetchNotifications();
       }
     } catch (err) {
       console.error('Error updating follow status:', err);
     }
   };
+
+
+
 
   const openCommentModal = (post) => {
     setSelectedPost(post);
@@ -172,20 +191,20 @@ const UserProfilePage = () => {
           </div>
         )}
 
-         <div className="d-flex justify-content-center mt-4 mb-3">
-            <button
-              className={`btn btn-sm mx-2 ${activeTab === "plans" ? "btn-primary" : "btn-outline-primary"}`}
-              onClick={() => setActiveTab("plans")}
-            >
-              Learning Plans
-            </button>
-            <button
-              className={`btn btn-sm mx-2 ${activeTab === "posts" ? "btn-primary" : "btn-outline-primary"}`}
-              onClick={() => setActiveTab("posts")}
-            >
-              Skill Posts
-            </button>
-          </div>
+        <div className="d-flex justify-content-center mt-4 mb-3">
+          <button
+            className={`btn btn-sm mx-2 ${activeTab === "plans" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => setActiveTab("plans")}
+          >
+            Learning Plans
+          </button>
+          <button
+            className={`btn btn-sm mx-2 ${activeTab === "posts" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => setActiveTab("posts")}
+          >
+            Skill Posts
+          </button>
+        </div>
 
         {/* Public Learning Plans */}
         {activeTab === "plans" && (
@@ -250,65 +269,66 @@ const UserProfilePage = () => {
           </div>
         )}
         </>
+
         )}
 
         {activeTab === "posts" && (
-        <>
-        <h4 className="mb-3">Skill Posts</h4>
-        {userPosts.length === 0 ? (
-          <p>This user has not shared any skill posts.</p>
-        ) : (
-          <div className="row">
-            {userPosts.map((post) => (
-              <div key={post.id} className="col-12 col-sm-6 col-md-4 mb-4">
-                <div className="card h-100 shadow-sm post-card">
-                  <div className="card-body d-flex flex-column">
-                    <p className="text-dark mb-2">{post.contentDescription}</p>
+          <>
+            <h4 className="mb-3">Skill Posts</h4>
+            {userPosts.length === 0 ? (
+              <p>This user has not shared any skill posts.</p>
+            ) : (
+              <div className="row">
+                {userPosts.map((post) => (
+                  <div key={post.id} className="col-12 col-sm-6 col-md-4 mb-4">
+                    <div className="card h-100 shadow-sm post-card">
+                      <div className="card-body d-flex flex-column">
+                        <p className="text-dark mb-2">{post.contentDescription}</p>
 
-                    {post.mediaType?.startsWith("image") && (
-                      <img
-                        src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
-                        alt="Post"
-                        className="img-fluid rounded mb-3"
-                        style={{ objectFit: "cover", height: "200px" }}
-                      />
-                    )}
+                        {post.mediaType?.startsWith("image") && (
+                          <img
+                            src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
+                            alt="Post"
+                            className="img-fluid rounded mb-3"
+                            style={{ objectFit: "cover", height: "200px" }}
+                          />
+                        )}
 
-                    {post.mediaType?.startsWith("video") && (
-                      <video
-                        controls
-                        src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
-                        className="w-100 mb-3 rounded"
-                        style={{ height: "200px" }}
-                      />
-                    )}
+                        {post.mediaType?.startsWith("video") && (
+                          <video
+                            controls
+                            src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
+                            className="w-100 mb-3 rounded"
+                            style={{ height: "200px" }}
+                          />
+                        )}
 
-                    <small className="text-muted mt-auto">
-                      Posted on {new Date(post.timestamp).toLocaleString()}
-                    </small>
-                    <div className="d-flex justify-content-between mt-2">
-                        <button className="btn btn-outline-secondary btn-sm" onClick={() => openCommentModal(post)}>Comment</button>
+                        <small className="text-muted mt-auto">
+                          Posted on {new Date(post.timestamp).toLocaleString()}
+                        </small>
+                        <div className="d-flex justify-content-between mt-2">
+                          <button className="btn btn-outline-secondary btn-sm" onClick={() => openCommentModal(post)}>Comment</button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-        </>
-        )}
-           {/* Comment Modal */}
-                {selectedPost && (
-                  <CommentSection
-                    open={commentModalOpen}
-                    onClose={() => setCommentModalOpen(false)}
-                    post={selectedPost}
-                  />
-                )}
-        {/* Skill Post Edit Modal */}
-            {snap.editPostModalOpened && (
-              <EditPostModal />
             )}
+          </>
+        )}
+        {/* Comment Modal */}
+        {selectedPost && (
+          <CommentSection
+            open={commentModalOpen}
+            onClose={() => setCommentModalOpen(false)}
+            post={selectedPost}
+          />
+        )}
+        {/* Skill Post Edit Modal */}
+        {snap.editPostModalOpened && (
+          <EditPostModal />
+        )}
       </div>
     </>
   );
