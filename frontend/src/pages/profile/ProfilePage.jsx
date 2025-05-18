@@ -315,7 +315,7 @@ const ProfilePage = () => {
 
       if (response.status === 200) {
         // Refresh the deadline list after marking as completed
-        fetchDeadlines(); // make sure this function is defined
+        fetchDeadlines(profile.id); // make sure this function is defined
       }
     } catch (error) {
       console.error("Error marking deadline as completed", error);
@@ -323,7 +323,8 @@ const ProfilePage = () => {
   };
 
   const handleDeleteDeadline = async (deadlineId) => {
-    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
+    const userId = profile?.id;
     if (!window.confirm("Are you sure you want to delete this deadline?")) return;
 
     if (!userId) {
@@ -336,6 +337,9 @@ const ProfilePage = () => {
         `http://localhost:8080/api/deadlines/user/${userId}/delete/${deadlineId}`,
         {
           method: "DELETE",
+          headers: {
+              Authorization: `Bearer ${token}`, // ✅ missing earlier
+            },
         }
       );
 
