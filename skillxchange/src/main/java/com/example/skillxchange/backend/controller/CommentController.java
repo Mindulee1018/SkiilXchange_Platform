@@ -72,6 +72,7 @@ public class CommentController {
         return commentService.getAllComments();
     }
 
+    //Get Comments by ID
     @GetMapping("/{id}")
     public ResponseEntity<Comment> getCommentById(@PathVariable String id) {
         return commentService.getCommentById(id)
