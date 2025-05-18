@@ -155,17 +155,18 @@ const MyPost = () => {
         ) : (
           <Row>
             {userPosts.map((post) => (
-              <Col key={post.id} xs={12} md={6} lg={4} className="mb-4">
-                <div className="card h-100 shadow-sm">
+              <Col xs={12} sm={12} md={6} lg={6} xl={6} key={post.id} className="mb-4 d-flex justify-content-center">
+                <div className="card h-100 shadow-sm post-card" style={{ width: "100%", maxWidth: "500px" }}>
                   <div className="card-body d-flex flex-column">
-                    <p className="mb-2">{post.contentDescription}</p>
+                    <p className="text-dark mb-3">{post.contentDescription}</p>
+
 
                     {post.mediaType?.startsWith("image") && (
                       <img
                         src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, "")}`}
                         alt="Post"
                         className="img-fluid rounded mb-3"
-                        style={{ objectFit: "cover", height: "200px" }}
+                        style={{ objectFit: "cover", height: "550px", width: "100%" }}
                       />
                     )}
 
@@ -174,7 +175,7 @@ const MyPost = () => {
                         controls
                         src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, "")}`}
                         className="w-100 mb-3 rounded"
-                        style={{ height: "200px" }}
+                        //style={{ height: "200px" }}
                       />
                     )}
 
