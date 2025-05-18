@@ -1131,6 +1131,16 @@ const ProfilePage = () => {
               </>
             )}
 
+<<<<<<< HEAD
+          {/* --Comment Modal */}
+        {selectedPost && (
+          <CommentSection
+            open={commentModalOpen}
+            onClose={() => setCommentModalOpen(false)}
+            post={selectedPost}
+          />
+        )}
+=======
             {/* Comment Modal */}
             {selectedPost && (
               <CommentSection
@@ -1139,6 +1149,7 @@ const ProfilePage = () => {
                 post={selectedPost}
               />
             )}
+>>>>>>> c3116803e8590cbad91e059a9b063b9ff8cc8a31
 
             {/* Followers Modal */}
             <Modal show={showFollowers} onHide={() => setShowFollowers(false)}>

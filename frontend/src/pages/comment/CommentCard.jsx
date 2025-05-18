@@ -2,6 +2,7 @@ import React from "react";
 import { List, Avatar } from "antd";
 import state from "../../util/Store";
 
+//comment card
 const CommentCard = ({ comment }) => {
   return (
     <>
