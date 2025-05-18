@@ -5,6 +5,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: box-shadow 0.3s ease;
+  margin-bottom: 20px;
 }
 
 .my-post:hover {
@@ -82,4 +83,21 @@
 
 .create-post-card:hover i {
   transform: rotate(10deg) scale(1.1);
+}
+
+.interaction-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #555;
+}
+
+.interaction-button.liked {
+  color: #1890ff; /* or whatever color you want for liked */
+}
+
+.interaction-button:hover {
+  opacity: 0.8;
 }

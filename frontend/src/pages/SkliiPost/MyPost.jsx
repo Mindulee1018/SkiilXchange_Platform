@@ -1,36 +1,65 @@
 import React, { useEffect, useState } from "react";
 import { useSnapshot } from "valtio";
-import { Modal, message } from "antd";
-import state from "../../util/Store";
+import { Modal, message, Button, Tooltip } from "antd";
+import { LikeOutlined, LikeFilled, CommentOutlined } from "@ant-design/icons";
+import { Col, Row } from "react-bootstrap";
+
+import Navbar from "../../components/common/navbar";
 import SkillPostUploader from "./SkillPostUploader";
 import EditPostModal from "./EditPostModal";
 import PostService from "../../services/PostService";
+import LikeService from "../../services/LikeService";
 import useProfile from "../../hooks/useProfile";
-import CommentSection from "../../pages/comment/CommentSection"; // Import CommentSection
+import CommentSection from "../../pages/comment/CommentSection";
+import state from "../../util/Store";
+
 import "../../Styles/MyPost.css";
 import "antd/dist/reset.css";
-import Navbar from "../../components/common/navbar";
-import { Row, Col } from "react-bootstrap";
 
 const MyPost = () => {
   const snap = useSnapshot(state);
   const { profile } = useProfile();
+
   const [userPosts, setUserPosts] = useState([]);
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [likes, setLikes] = useState({}); // { postId: [likes] }
+  const [userLikes, setUserLikes] = useState(new Set()); // postIds liked by current user
 
+  // Fetch posts of current user & their likes
   const fetchUserPosts = async (userId) => {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`http://localhost:8080/api/posts/user/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to fetch posts");
       const posts = await res.json();
       setUserPosts(posts);
+      fetchLikesForPosts(posts);
     } catch (err) {
       console.error("Error loading posts:", err);
     }
+  };
+
+  // Fetch likes for each post & track if user liked it
+  const fetchLikesForPosts = async (posts) => {
+    const allLikes = {};
+    const userLikedPosts = new Set();
+
+    for (const post of posts) {
+      try {
+        const likeList = await LikeService.getLikesByPostId(post.id);
+        allLikes[post.id] = likeList;
+        if (likeList.some((like) => like.userId === profile?.id)) {
+          userLikedPosts.add(post.id);
+        }
+      } catch (err) {
+        console.error(`Error fetching likes for post ${post.id}:`, err);
+      }
+    }
+    setLikes(allLikes);
+    setUserLikes(userLikedPosts);
   };
 
   useEffect(() => {
@@ -51,7 +80,7 @@ const MyPost = () => {
         try {
           await PostService.deletePost(id);
           message.success("Post deleted");
-          fetchUserPosts();
+          fetchUserPosts(profile.id);
         } catch (err) {
           console.error("Failed to delete post", err);
           message.error("Failed to delete post");
@@ -65,6 +94,34 @@ const MyPost = () => {
     setCommentModalOpen(true);
   };
 
+  // Toggle like/unlike on a post
+  const handleLikeToggle = async (postId) => {
+    try {
+      if (userLikes.has(postId)) {
+        await LikeService.deleteLikeByPostId(postId);
+        setUserLikes((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(postId);
+          return newSet;
+        });
+        setLikes((prev) => ({
+          ...prev,
+          [postId]: prev[postId].filter((like) => like.userId !== profile?.id),
+        }));
+      } else {
+        const newLike = await LikeService.createLike({ postId });
+        setUserLikes((prev) => new Set(prev).add(postId));
+        setLikes((prev) => ({
+          ...prev,
+          [postId]: [...(prev[postId] || []), newLike],
+        }));
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      message.error("Failed to update like");
+    }
+  };
+
   return (
     <>
       <div className="fixed-top bg-white shadow-sm z-3">
@@ -72,18 +129,19 @@ const MyPost = () => {
       </div>
 
       <div className="container mt-5 pt-5">
-        {/* Create Post */}
-        <div className="text-center mb-5">
-          <div
-            className="card shadow-sm create-post-card border-primary mx-auto"
-            style={{ maxWidth: "600px", cursor: "pointer" }}
-            onClick={() => (state.uploadPostModalOpened = true)}
-          >
-            <div className="card-body d-flex flex-column align-items-center justify-content-center py-5">
-              <i className="fas fa-plus-circle fa-3x text-primary mb-3"></i>
-              <h5 className="card-title text-primary">Share Your Skill With the Community</h5>
-              <p className="card-text text-muted mb-0">Click here to create a new skill-sharing post</p>
-            </div>
+        <div
+          className="card shadow-sm create-post-card border-primary mx-auto"
+          style={{ maxWidth: "600px", cursor: "pointer" }}
+          onClick={() => (state.uploadPostModalOpened = true)}
+        >
+          <div className="card-body d-flex flex-column align-items-center justify-content-center py-5">
+            <i className="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+            <h5 className="card-title text-primary">
+              Share Your Skill With the Community
+            </h5>
+            <p className="card-text text-muted mb-0">
+              Click here to create a new skill-sharing post
+            </p>
           </div>
         </div>
 
@@ -95,16 +153,17 @@ const MyPost = () => {
         {userPosts.length === 0 ? (
           <p className="text-center">This user has not shared any skill posts.</p>
         ) : (
-          <Row gutter={[24, 24]}>
+          <Row>
             {userPosts.map((post) => (
               <Col xs={12} sm={12} md={6} lg={6} xl={6} key={post.id} className="mb-4 d-flex justify-content-center">
                 <div className="card h-100 shadow-sm post-card" style={{ width: "100%", maxWidth: "500px" }}>
                   <div className="card-body d-flex flex-column">
                     <p className="text-dark mb-3">{post.contentDescription}</p>
 
+
                     {post.mediaType?.startsWith("image") && (
                       <img
-                        src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
+                        src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, "")}`}
                         alt="Post"
                         className="img-fluid rounded mb-3"
                         style={{ objectFit: "cover", height: "550px", width: "100%" }}
@@ -114,20 +173,52 @@ const MyPost = () => {
                     {post.mediaType?.startsWith("video") && (
                       <video
                         controls
-                        src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
+                        src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, "")}`}
                         className="w-100 mb-3 rounded"
                         //style={{ height: "200px" }}
                       />
                     )}
 
-                    <small className="text-muted mb-3 mt-auto">
+                    <small className="text-muted">
                       Posted on {new Date(post.timestamp).toLocaleString()}
                     </small>
 
-                    <div className="d-flex justify-content-between mt-2">
-                      <button className="btn btn-outline-primary btn-sm" onClick={() => handleEdit(post)}>Edit</button>
-                      <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(post.id)}>Delete</button>
-                      <button className="btn btn-outline-secondary btn-sm" onClick={() => openCommentModal(post)}>Comment</button>
+                    <div className="mt-2 d-flex align-items-center gap-2">
+                      <Tooltip title="Like">
+                        <Button
+                          type="text"
+                          icon={
+                            userLikes.has(post.id) ? (
+                              <LikeFilled style={{ color: "#1890ff" }} />
+                            ) : (
+                              <LikeOutlined />
+                            )
+                          }
+                          onClick={() => handleLikeToggle(post.id)}
+                        />
+                      </Tooltip>
+                      <span>{likes[post.id]?.length || 0} Likes</span>
+
+                      <Button
+                        type="text"
+                        onClick={() => openCommentModal(post)}
+                        icon={<CommentOutlined />}
+                      >
+                        Comment
+                      </Button>
+
+                      <button
+                        className="btn btn-outline-primary btn-sm"
+                        onClick={() => handleEdit(post)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => handleDelete(post.id)}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 </div>
