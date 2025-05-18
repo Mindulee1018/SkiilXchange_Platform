@@ -282,7 +282,8 @@ const PlanViewPage = () => {
                   <input
                     className="form-check-input"
                     type="checkbox"
-                    checked={task.completed}
+                    checked={task.completed || plan.completed}
+                    disabled={!plan.started || plan.completed}
                     onChange={() => {
                       if (task.completed) {
                         handleMarkTaskIncomplete(i);

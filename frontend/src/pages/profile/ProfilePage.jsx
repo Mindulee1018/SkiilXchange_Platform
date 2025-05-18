@@ -355,30 +355,41 @@ const ProfilePage = () => {
     }
   };
 
+  const handleDeleteNotification = async (notificationId) => {
+    const token = localStorage.getItem("token");
+    const userId = profile?.id;
 
+    if (!window.confirm("Are you sure you want to delete this notification?")) return;
 
-  // const markDeadlineAsCompleted = async (deadlineId) => {
-  //   try {
-  //     const response = await fetch(
-  //       `http://localhost:8080/api/deadlines/user/${userId}/mark-completed/${deadlineId}`,
-  //       {
-  //         method: "PATCH",
-  //       }
-  //     );
-  //     if (response.ok) {
-  //       // Refresh deadlines
-  //       setDeadlines((prev) =>
-  //         prev.map((d) =>
-  //           d.id === deadlineId ? { ...d, completed: true } : d
-  //         )
-  //       );
-  //     } else {
-  //       console.error("Failed to mark deadline as completed");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //   }
-  // };
+    if (!userId) {
+      alert("User ID not found. Please log in again.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/notifications/user/${userId}/delete/${notificationId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        setNotifications((prev) => prev.filter((setNotifications) => setNotifications.id !== notificationId));
+      } else {
+        const errMsg = await response.text();
+        alert("Failed to delete notification: " + errMsg);
+      }
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      alert("Something went wrong.");
+    }
+  };
+
 
   const fetchUserPosts = async (userId) => {
     try {
@@ -591,7 +602,7 @@ const ProfilePage = () => {
                 ) : (
                   <>
                     <button
-                      className="btn btn-sm btn-success mb-3"
+                      className="btn btn-sm btn-outline-success mb-3"
                       onClick={markAllAsRead}
                     >
                       Mark All as Read
@@ -600,16 +611,7 @@ const ProfilePage = () => {
                     {/* Tabs */}
                     <div className="mb-3">
                       <button
-                        className={`btn btn-sm me-2 ${progressTab === "unread"
-                          ? "btn-primary"
-                          : "btn-outline-primary"
-                          }`}
-                        onClick={() => setProgressTab("unread")}
-                      >
-                        Unread
-                      </button>
-                      <button
-                        className={`btn btn-sm ${progressTab === "all"
+                        className={`btn btn-sm me-2 ${progressTab === "all"
                           ? "btn-primary"
                           : "btn-outline-primary"
                           }`}
@@ -617,12 +619,33 @@ const ProfilePage = () => {
                       >
                         All
                       </button>
+                      <button
+                        className={`btn btn-sm me-2 ${progressTab === "unread"
+                          ? "btn-danger"
+                          : "btn-outline-danger"
+                          }`}
+                        onClick={() => setProgressTab("unread")}
+                      >
+                        Unread
+                      </button>
+                      <button
+                        className={`btn btn-sm me-2 ${progressTab === "read"
+                          ? "btn-success"
+                          : "btn-outline-success"
+                          }`}
+                        onClick={() => setProgressTab("read")}
+                      >
+                        Read
+                      </button>
+                      
                     </div>
 
                     {/* Progress Updates List */}
                     <ul className="list-group">
                       {(progressTab === "unread"
                         ? progressUpdates.filter((update) => !update.read)
+                        : progressTab === "read"
+                          ? progressUpdates.filter((update) => update.read)
                         : progressUpdates
                       ).map((update) => (
                         <li
@@ -642,7 +665,7 @@ const ProfilePage = () => {
                           <br />
                           {!update.read && (
                             <button
-                              className="btn btn-sm btn-primary mt-1"
+                              className="btn btn-sm btn-outline-success mt-1"
                               onClick={() => markAsRead(update.id)}
                             >
                               Mark as Read
@@ -653,6 +676,9 @@ const ProfilePage = () => {
                       {progressTab === "unread" &&
                         progressUpdates.filter((update) => !update.read)
                           .length === 0 && <p>No unread updates.</p>}
+                        {progressTab === "read" &&
+                        progressUpdates.filter((update) => update.read)
+                          .length === 0 && <p>No read updates.</p>} 
                       {progressTab === "all" &&
                         progressUpdates.length === 0 && (
                           <p>No progress updates.</p>
@@ -686,22 +712,30 @@ const ProfilePage = () => {
                         key={index}
                         className="list-group-item small bg-white"
                       >
-                        <strong>{notification.title || "Notification"}</strong><br />
+                        <strong>{notification.title || "Notification"}</strong>
+                        <br />
                         <span>
-                          {notification.message ||
-                            notification.content ||
-                            "You have a new update."}
+                          {notification.message || notification.content || "You have a new update."}
                         </span>
                         <br />
                         <small className="text-muted">
-                          {new Date(notification.createdAt).toLocaleString()}
+                          {new Date(notification.timestamp).toLocaleString()}
                         </small>
+                        <div className="mt-2">
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleDeleteNotification(notification.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
                 )}
               </Modal.Body>
             </Modal>
+
 
             {/* Deadlines Panel */}
             <Modal
@@ -725,7 +759,7 @@ const ProfilePage = () => {
                     {/* Tabs */}
                     <div className="mb-3">
                       <button
-                        className={`btn btn-sm me-2 ${deadlineTab === "all" ? "btn-danger" : "btn-outline-danger"}`}
+                        className={`btn btn-sm me-2 ${deadlineTab === "all" ? "btn-primary" : "btn-outline-primary"}`}
                         onClick={() => setDeadlineTab("all")}
                       >
                         All
@@ -737,7 +771,7 @@ const ProfilePage = () => {
                         Incomplete
                       </button>
                       <button
-                        className={`btn btn-sm me-2 ${deadlineTab === "completed" ? "btn-danger" : "btn-outline-danger"}`}
+                        className={`btn btn-sm me-2 ${deadlineTab === "completed" ? "btn-success" : "btn-outline-success"}`}
                         onClick={() => setDeadlineTab("completed")}
                       >
                         Completed
@@ -772,14 +806,14 @@ const ProfilePage = () => {
                             <div className="mt-1">
                               {!deadline.completed ? (
                                 <button
-                                  className="btn btn-sm btn-danger"
+                                  className="btn btn-sm btn-outline-success"
                                   onClick={() => markDeadlineAsCompleted(deadline.id)}
                                 >
                                   Mark as Complete
                                 </button>
                               ) : (
                                 <button
-                                  className="btn btn-sm btn-outline-secondary"
+                                  className="btn btn-sm btn-outline-danger"
                                   onClick={() => handleDeleteDeadline(deadline.id)}
                                 >
                                   Delete

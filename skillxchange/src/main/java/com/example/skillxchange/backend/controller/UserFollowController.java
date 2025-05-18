@@ -1,6 +1,8 @@
 package com.example.skillxchange.backend.controller;
 
+import com.example.skillxchange.backend.model.Notification;
 import com.example.skillxchange.backend.model.User;
+import com.example.skillxchange.backend.repository.NotificationRepository;
 import com.example.skillxchange.backend.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,6 +24,9 @@ public class UserFollowController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     //follow a user
     @PostMapping("/{id}/follow")
@@ -44,6 +50,19 @@ public class UserFollowController {
             userRepository.save(target);
             userRepository.save(follower);
         }
+
+        // Create and save notification for the followed user
+        Notification notification = new Notification();
+        notification.setUserId(target.getId());      // Receiver (the user being followed)
+        notification.setSenderId(follower.getId());  // Sender (the follower)
+        
+        // Optional: you can include follower's username in the message
+        notification.setMessage(follower.getUsername() + " started following you.");
+        notification.setType("follow");
+        notification.setRead(false);
+        notification.setTimestamp(new Date());
+
+        notificationRepository.save(notification);
 
         return ResponseEntity.ok("Followed successfully");
     }
