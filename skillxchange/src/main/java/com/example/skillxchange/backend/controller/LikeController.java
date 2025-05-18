@@ -47,6 +47,7 @@ public class LikeController {
         return new ResponseEntity<>(likes, HttpStatus.OK);
     }
 
+    //Create likes
     @PostMapping("/{postId}")
     public ResponseEntity<?> createLike(@PathVariable String postId) {
         // Get authenticated user's ID from JWT
