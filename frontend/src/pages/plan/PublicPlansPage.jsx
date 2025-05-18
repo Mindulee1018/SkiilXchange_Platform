@@ -8,6 +8,7 @@ const PublicPlansPage = () => {
   const [filteredPlans, setFilteredPlans] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
+  const [usernames, setUsernames] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,6 +32,30 @@ const PublicPlansPage = () => {
 
     fetchPublicPlans();
   }, []);
+
+  useEffect(() => {
+    const uniqueUserIds = [...new Set(filteredPlans.map(plan => plan.userId))];
+    uniqueUserIds.forEach(userId => {
+      if (!userId || usernames[userId]) return;
+
+      const fetchUsername = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch(`http://localhost:8080/api/auth/users/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setUsernames(prev => ({ ...prev, [userId]: data.username }));
+          }
+        } catch (err) {
+          console.error(`Failed to fetch username for userId=${userId}`, err);
+        }
+      };
+
+      fetchUsername();
+    });
+  }, [filteredPlans, usernames]);
 
   useEffect(() => {
     let filtered = plans;
@@ -121,6 +146,19 @@ const PublicPlansPage = () => {
                           </span>
                         );
                       })}
+                    </div>
+                    <div className="text-muted small">
+                      By:{' '}
+                      <span
+                        className="text-primary"
+                        style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/user/${plan.userId}`);
+                        }}
+                      >
+                        {usernames[plan.userId] || 'Loading...'}
+                      </span>
                     </div>
                     <div className="text-muted small">
                       🗓️ Created on: {new Date(plan.createdAt).toLocaleDateString()}

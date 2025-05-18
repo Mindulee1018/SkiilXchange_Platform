@@ -6,9 +6,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -139,14 +142,21 @@ public class SkillPostController {
         // Recent public posts (assuming all posts are public for now)
         List<SkillPost> recentPosts = postService.getRecentPosts(); // implement this
 
-        // Combine and remove duplicates
-        Set<SkillPost> combined = new LinkedHashSet<>();
-        combined.addAll(followedUserPosts);
-        combined.addAll(recentPosts);
+        List<SkillPost> allPosts = new ArrayList<>();
+            allPosts.addAll(followedUserPosts);
+            allPosts.addAll(recentPosts);
+
+        Map<String, SkillPost> uniquePostsById = new LinkedHashMap<>();
+        for (SkillPost post : allPosts) {
+            uniquePostsById.put(post.getId(), post);
+        }
 
         // Remove user's own posts
-        combined.removeIf(post -> post.getUserId().equals(user.getId()));
+        List<SkillPost> result = uniquePostsById.values()
+            .stream()
+            .filter(p -> !p.getUserId().equals(user.getId()))
+            .toList();
 
-        return ResponseEntity.ok(combined);
+        return ResponseEntity.ok(result);
     }
 }

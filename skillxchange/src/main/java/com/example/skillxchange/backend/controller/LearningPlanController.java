@@ -16,8 +16,11 @@ import com.example.skillxchange.backend.service.NotificationPublisher;
 import jakarta.validation.Valid;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -361,14 +364,24 @@ public class LearningPlanController {
                 .findTop10ByIsPublicTrueOrderByCreatedAtDesc();
 
         // Combine all, removing duplicates
-        Set<LearningPlan> combined = new LinkedHashSet<>();
-        combined.addAll(followedUserPlans);
-        combined.addAll(tagPlans);
-        combined.addAll(recentPlans);
+        List<LearningPlan> allPlans = new ArrayList<>();
+        allPlans.addAll(followedUserPlans);
+        allPlans.addAll(tagPlans);
+        allPlans.addAll(recentPlans);
 
-        combined.removeIf(plan -> plan.getUserId().equals(user.getId()));
+        // Deduplicate by ID
+        Map<String, LearningPlan> uniquePlansById = new LinkedHashMap<>();
+        for (LearningPlan plan : allPlans) {
+            uniquePlansById.put(plan.getId(), plan);
+        }
 
-        return ResponseEntity.ok(combined);
+        // Remove user's own plans
+        List<LearningPlan> result = uniquePlansById.values()
+            .stream()
+            .filter(p -> !p.getUserId().equals(user.getId()))
+            .toList();
+
+        return ResponseEntity.ok(result);
     }
 
 
