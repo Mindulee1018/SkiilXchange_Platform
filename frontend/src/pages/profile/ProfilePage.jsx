@@ -843,7 +843,7 @@ const ProfilePage = () => {
                           ? deadlines.filter((d) => d.completed)
                           : deadlines
                       ).map((deadline) => {
-                        console.log("Full deadline object:", JSON.stringify(deadline, null, 2));
+                        //console.log("Full deadline object:", JSON.stringify(deadline, null, 2));
 
                         return (
                           <li
