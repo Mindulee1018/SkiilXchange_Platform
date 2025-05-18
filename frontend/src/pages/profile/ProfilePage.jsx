@@ -35,12 +35,13 @@ const ProfilePage = () => {
 
   const [progressUpdates, setProgressUpdates] = useState([]);
   const [showProgressUpdates, setShowProgressUpdates] = useState(false);
+  const [progressTab, setProgressTab] = React.useState("unread"); // 'unread' or 'all'
+  const unreadCount = progressUpdates.filter((update) => !update.read).length;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [progressTab, setProgressTab] = React.useState("unread"); // 'unread' or 'all'
-  const unreadCount = progressUpdates.filter((update) => !update.read).length;
+
   const [activeTab, setActiveTab] = useState("plans");
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const snap = useSnapshot(state);
@@ -314,12 +315,46 @@ const ProfilePage = () => {
 
       if (response.status === 200) {
         // Refresh the deadline list after marking as completed
-        fetchDeadlines(); // make sure this function is defined
+        fetchDeadlines(profile.id); // make sure this function is defined
       }
     } catch (error) {
       console.error("Error marking deadline as completed", error);
     }
   };
+
+  const handleDeleteDeadline = async (deadlineId) => {
+    const token = localStorage.getItem("token");
+    const userId = profile?.id;
+    if (!window.confirm("Are you sure you want to delete this deadline?")) return;
+
+    if (!userId) {
+      alert("User ID not found. Please log in again.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/deadlines/user/${userId}/delete/${deadlineId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`, // ✅ missing earlier
+          },
+        }
+      );
+
+      if (response.ok) {
+        setDeadlines((prev) => prev.filter((d) => d.id !== deadlineId));
+      } else {
+        const errMsg = await response.text();
+        alert("Failed to delete deadline: " + errMsg);
+      }
+    } catch (error) {
+      console.error("Error deleting deadline:", error);
+      alert("Something went wrong.");
+    }
+  };
+
 
 
   // const markDeadlineAsCompleted = async (deadlineId) => {
@@ -690,25 +725,33 @@ const ProfilePage = () => {
                     {/* Tabs */}
                     <div className="mb-3">
                       <button
+                        className={`btn btn-sm me-2 ${deadlineTab === "all" ? "btn-danger" : "btn-outline-danger"}`}
+                        onClick={() => setDeadlineTab("all")}
+                      >
+                        All
+                      </button>
+                      <button
                         className={`btn btn-sm me-2 ${deadlineTab === "incomplete" ? "btn-danger" : "btn-outline-danger"}`}
                         onClick={() => setDeadlineTab("incomplete")}
                       >
                         Incomplete
                       </button>
                       <button
-                        className={`btn btn-sm ${deadlineTab === "all" ? "btn-danger" : "btn-outline-danger"}`}
-                        onClick={() => setDeadlineTab("all")}
+                        className={`btn btn-sm me-2 ${deadlineTab === "completed" ? "btn-danger" : "btn-outline-danger"}`}
+                        onClick={() => setDeadlineTab("completed")}
                       >
-                        All
+                        Completed
                       </button>
+
                     </div>
 
                     {/* Deadline List */}
                     <ul className="list-group">
                       {(deadlineTab === "incomplete"
                         ? deadlines.filter((d) => !d.completed)
-                        : deadlines
-
+                        : deadlineTab === "completed"
+                          ? deadlines.filter((d) => d.completed)
+                          : deadlines
                       ).map((deadline) => {
                         console.log("Full deadline object:", JSON.stringify(deadline, null, 2));
 
@@ -724,16 +767,25 @@ const ProfilePage = () => {
                             </small>
                             <br />
                             <strong>Status:</strong> {deadline.completed ? "Completed" : "Pending"}
-                            {!deadline.completed && (
-                              <div className="mt-1">
+
+                            {/* Buttons */}
+                            <div className="mt-1">
+                              {!deadline.completed ? (
                                 <button
                                   className="btn btn-sm btn-danger"
                                   onClick={() => markDeadlineAsCompleted(deadline.id)}
                                 >
                                   Mark as Complete
                                 </button>
-                              </div>
-                            )}
+                              ) : (
+                                <button
+                                  className="btn btn-sm btn-outline-secondary"
+                                  onClick={() => handleDeleteDeadline(deadline.id)}
+                                >
+                                  Delete
+                                </button>
+                              )}
+                            </div>
                           </li>
                         );
                       })}
@@ -742,6 +794,12 @@ const ProfilePage = () => {
                         deadlines.filter((d) => !d.completed).length === 0 && (
                           <p>No incomplete deadlines.</p>
                         )}
+
+                      {deadlineTab === "completed" &&
+                        deadlines.filter((d) => d.completed).length === 0 && (
+                          <p>No completed deadlines.</p>
+                        )}
+
                     </ul>
                   </>
                 )}
@@ -897,8 +955,6 @@ const ProfilePage = () => {
                 post={selectedPost}
               />
             )}
-
-            
 
             {/* Followers Modal */}
             <Modal show={showFollowers} onHide={() => setShowFollowers(false)}>
