@@ -91,6 +91,7 @@ const SkillPostUploader = () => {
         return;
       }
     }
+    
 
     try {
       setMediaUploading(true);
