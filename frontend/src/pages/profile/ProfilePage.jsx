@@ -956,7 +956,6 @@ const ProfilePage = () => {
               />
             )}
 
-
             {activeTab === "posts" && (
               <>
                 <h4 className="mb-3">Your Skill Posts</h4>
