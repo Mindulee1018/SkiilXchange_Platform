@@ -335,12 +335,11 @@ const PlanTemplate = () => {
         </form>
 
         <TaskModal
+          key={taskBeingEditedIndex !== null ? `edit-${taskBeingEditedIndex}` : `add-${formData.tasks.length}`}
           show={showTaskModal}
           onClose={() => setShowTaskModal(false)}
           onSave={handleSaveTask}
-          initialTask={
-            taskBeingEditedIndex !== null ? formData.tasks[taskBeingEditedIndex] : null
-          }
+          initialTask={taskBeingEditedIndex !== null ? formData.tasks[taskBeingEditedIndex] : null}
           mode={taskBeingEditedIndex !== null ? "edit" : "add"}
         />
       </div>
