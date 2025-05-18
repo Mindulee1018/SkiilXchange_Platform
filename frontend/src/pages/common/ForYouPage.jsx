@@ -9,6 +9,7 @@ import "antd/dist/reset.css";
 import {message, Button, Tooltip } from "antd";
 import { LikeOutlined, LikeFilled, CommentOutlined } from "@ant-design/icons";
 import LikeService from "../../services/LikeService";
+import useProfile from '../../hooks/useProfile';
 
 const ForYouPage = () => {
   const [plans, setPlans] = useState([]);
@@ -23,6 +24,7 @@ const ForYouPage = () => {
   const [usernames, setUsernames] = useState({});
   const [likes, setLikes] = useState({}); // { postId: [likes] }
   const [userLikes, setUserLikes] = useState(new Set()); // postIds liked by current user
+  const { profile} = useProfile();
   
 
   const openCommentModal = (post) => {
@@ -31,31 +33,35 @@ const ForYouPage = () => {
   };
 
   const handleLikeToggle = async (postId) => {
-    try {
-      if (userLikes.has(postId)) {
-        await LikeService.deleteLikeByPostId(postId);
-        setUserLikes((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(postId);
-          return newSet;
-        });
-        setLikes((prev) => ({
-          ...prev,
-          [postId]: prev[postId].filter((like) => like.userId !== profile?.id),
-        }));
-      } else {
-        const newLike = await LikeService.createLike({ postId });
-        setUserLikes((prev) => new Set(prev).add(postId));
-        setLikes((prev) => ({
-          ...prev,
-          [postId]: [...(prev[postId] || []), newLike],
-        }));
-      }
-    } catch (error) {
-      console.error("Error toggling like:", error);
-      message.error("Failed to update like");
-    }
-  };
+        try {
+          if (userLikes.has(postId)) {
+            await LikeService.deleteLikeByPostId(postId);
+            setUserLikes(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(postId);
+              return newSet;
+            });
+            setLikes(prev => ({
+              ...prev,
+              [postId]: prev[postId].filter((like) => like.userId !== profile?.id),
+            }));
+          } else {
+            const newLike = await LikeService.createLike({ postId });
+            setUserLikes(prev => new Set(prev).add(postId));
+            setLikes(prev => ({
+              ...prev,
+              [postId]: [...(prev[postId] || []), newLike],
+            }));
+          }
+        } catch (error) {
+          if (error.message === "Already liked") {
+            message.info("You've already liked this post.");
+          } else {
+            console.error("Error toggling like:", error);
+            message.error("Failed to update like");
+          }
+        }
+      };
 
   useEffect(() => {
     const fetchForYouPlans = async () => {
@@ -87,31 +93,10 @@ const ForYouPage = () => {
         if (!res.ok) throw new Error('Failed to fetch For You posts');
         const data = await res.json();
         setPosts(data);
-        fetchLikesForPosts(posts);
       } catch (err) {
         console.error('Error loading For You posts', err);
       }
     };
-    // Fetch likes for each post & track if user liked it
-      const fetchLikesForPosts = async (posts) => {
-        const allLikes = {};
-        const userLikedPosts = new Set();
-    
-        for (const post of posts) {
-          try {
-            const likeList = await LikeService.getLikesByPostId(post.id);
-            allLikes[post.id] = likeList;
-            if (likeList.some((like) => like.userId === profile?.id)) {
-              userLikedPosts.add(post.id);
-            }
-          } catch (err) {
-            console.error(`Error fetching likes for post ${post.id}:`, err);
-          }
-        }
-        setLikes(allLikes);
-        setUserLikes(userLikedPosts);
-      };
-        
 
     fetchForYouPlans();
     fetchForYouPosts();
@@ -140,6 +125,32 @@ const ForYouPage = () => {
       fetchUsername();
     });
   }, [plans, posts, usernames]);
+
+  useEffect(() => {
+  if (posts.length === 0) return;
+
+  const fetchLikesForPosts = async (posts) => {
+    const allLikes = {};
+    const userLikedPosts = new Set();
+
+    for (const post of posts) {
+      try {
+        const likeList = await LikeService.getLikesByPostId(post.id);
+        allLikes[post.id] = likeList;
+        if (likeList.some((like) => like.userId === snap.profile?.id)) {
+          userLikedPosts.add(post.id);
+        }
+      } catch (err) {
+        console.error(`Error fetching likes for post ${post.id}:`, err);
+      }
+    }
+
+    setLikes(allLikes);
+    setUserLikes(userLikedPosts);
+  };
+
+  fetchLikesForPosts(posts);
+}, [posts]);
 
   return (
     <>

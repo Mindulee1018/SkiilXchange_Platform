@@ -11,6 +11,7 @@ import {message, Button, Tooltip } from "antd";
 import { LikeOutlined, LikeFilled, CommentOutlined } from "@ant-design/icons";
 import { Modal} from "react-bootstrap";
 import LikeService from "../../services/LikeService";
+import useProfile from "../../hooks/useProfile";
 
 function parseJwt(token) {
   if (!token) return {};
@@ -38,6 +39,7 @@ const UserProfilePage = () => {
   const navigate = useNavigate();
   const [likes, setLikes] = useState({}); // { postId: [likes] }
   const [userLikes, setUserLikes] = useState(new Set()); // postIds liked by current user
+  const { profile} = useProfile();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -195,31 +197,35 @@ const UserProfilePage = () => {
 
   // Toggle like/unlike on a post
       const handleLikeToggle = async (postId) => {
-        try {
-          if (userLikes.has(postId)) {
-            await LikeService.deleteLikeByPostId(postId);
-            setUserLikes((prev) => {
-              const newSet = new Set(prev);
-              newSet.delete(postId);
-              return newSet;
-            });
-            setLikes((prev) => ({
-              ...prev,
-              [postId]: prev[postId].filter((like) => like.userId !== profile?.id),
-            }));
-          } else {
-            const newLike = await LikeService.createLike({ postId });
-            setUserLikes((prev) => new Set(prev).add(postId));
-            setLikes((prev) => ({
-              ...prev,
-              [postId]: [...(prev[postId] || []), newLike],
-            }));
-          }
-        } catch (error) {
+      try {
+        if (userLikes.has(postId)) {
+          await LikeService.deleteLikeByPostId(postId);
+          setUserLikes(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(postId);
+            return newSet;
+          });
+          setLikes(prev => ({
+            ...prev,
+            [postId]: prev[postId].filter((like) => like.userId !== profile?.id),
+          }));
+        } else {
+          const newLike = await LikeService.createLike({ postId });
+          setUserLikes(prev => new Set(prev).add(postId));
+          setLikes(prev => ({
+            ...prev,
+            [postId]: [...(prev[postId] || []), newLike],
+          }));
+        }
+      } catch (error) {
+        if (error.message === "Already liked") {
+          message.info("You've already liked this post.");
+        } else {
           console.error("Error toggling like:", error);
           message.error("Failed to update like");
         }
-      };
+      }
+    };
 
   if (loading) return <div className="container mt-5">Loading...</div>;
   if (error) return <div className="container mt-5">{error}</div>;

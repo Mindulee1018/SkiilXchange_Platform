@@ -30,25 +30,17 @@ class LikeService {
   }
 
  async createLike({ postId }) {
-    try {
-      const config = this.getConfig();
-      const response = await axios.post(`${BASE_URL}/likes/${postId}`,null,config);
-      /*if (response.status === 201) {
-        try {
-          const body = {
-            userId: userId,
-            message: "You have a new like",
-            description: "Your post liked by " + username,
-          };
-
-          await NotificationService.createNotification(body);
-        } catch (error) {}
-      }*/
-      return response.data;
-    } catch (error) {
-      throw new Error("Failed to create like");
+  try {
+    const config = this.getConfig();
+    const response = await axios.post(`${BASE_URL}/likes/${postId}`, null, config);
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 409) {
+      throw new Error("Already liked");
     }
+    throw new Error("Failed to create like");
   }
+}
 
   async deleteLikeByPostId(postId) {
   try {
