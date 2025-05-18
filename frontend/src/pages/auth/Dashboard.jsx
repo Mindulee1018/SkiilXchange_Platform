@@ -10,54 +10,62 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [usernames, setUsernames] = useState({});
 
-  useEffect(() => {
-    const fetchPublicPlans = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8080/api/learning-plans/public", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+   useEffect(() => {
+  const fetchPublicPlans = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-        if (res.ok) {
-          const data = await res.json();
-          setPublicPlans(data);
-        } else {
-          throw new Error("Failed to fetch public plans");
-        }
-      } catch (err) {
-        console.error("Error loading public plans:", err);
-      } finally {
-        setLoading(false);
+      const res = await fetch('http://localhost:8080/api/learning-plans/public', { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setPublicPlans(data);
+      } else {
+        console.error('Failed to load public plans');
       }
-    };
+    } catch (err) {
+      console.error('Failed to fetch public plans', err);
+    } finally {
+      setLoading(false); // 🔥 Ensure loading is turned off
+    }
+  };
 
-    fetchPublicPlans();
-  }, []);
+  fetchPublicPlans();
+}, []);
+
 
   useEffect(() => {
-    const uniqueUserIds = [...new Set(publicPlans.map(plan => plan.userId))];
-    uniqueUserIds.forEach(userId => {
-      if (!userId || usernames[userId]) return;
+  const token = localStorage.getItem("token");
+  if (!token) return; // Don't fetch usernames if not logged in
 
-      const fetchUsername = async () => {
-        try {
-          const token = localStorage.getItem("token");
+  const userIdsToFetch = publicPlans
+    .map(plan => plan.userId)
+    .filter((id, i, arr) => id && !usernames[id] && arr.indexOf(id) === i); // unique & not fetched
+
+  if (userIdsToFetch.length === 0) return;
+
+  const fetchAllUsernames = async () => {
+    try {
+      const updates = {};
+      await Promise.all(
+        userIdsToFetch.map(async (userId) => {
           const res = await fetch(`http://localhost:8080/api/auth/users/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-
           if (res.ok) {
             const data = await res.json();
-            setUsernames(prev => ({ ...prev, [userId]: data.username }));
+            updates[userId] = data.username;
           }
-        } catch (err) {
-          console.error(`Failed to fetch username for userId=${userId}`, err);
-        }
-      };
+        })
+      );
+      setUsernames(prev => ({ ...prev, ...updates }));
+    } catch (err) {
+      console.error("Error fetching usernames in batch", err);
+    }
+  };
 
-      fetchUsername();
-    });
-  }, [publicPlans, usernames]);
+  fetchAllUsernames();
+}, [publicPlans]);
 
 
   return (

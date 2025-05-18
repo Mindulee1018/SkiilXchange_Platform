@@ -15,11 +15,9 @@ const PublicPlansPage = () => {
     const fetchPublicPlans = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:8080/api/learning-plans/public', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const res = await fetch('http://localhost:8080/api/learning-plans/public', { headers });
         if (res.ok) {
           const data = await res.json();
           setPlans(data);
@@ -32,6 +30,7 @@ const PublicPlansPage = () => {
 
     fetchPublicPlans();
   }, []);
+
 
   useEffect(() => {
     const uniqueUserIds = [...new Set(filteredPlans.map(plan => plan.userId))];
