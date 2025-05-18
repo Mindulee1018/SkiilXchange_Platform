@@ -47,6 +47,7 @@ const CommentSection = ({ open, onClose, post }) => {
     loadData();
   }, [open, post]);
 
+  //create comment
   const createComment = async () => {
     if (!comment.trim()) {
       message.warning("Comment cannot be empty");
