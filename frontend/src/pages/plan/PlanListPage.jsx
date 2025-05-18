@@ -291,7 +291,7 @@ const PlanListPage = () => {
                                 <span className={`badge ${plan.isPublic ? 'bg-info' : 'bg-secondary'}`}>
                                   {plan.isPublic ? '🌐 Public' : '🔒 Private'}
                                 </span>{' '}
-                                <span className="badge bg-warning text-dark">{updateCounts[plan.id] || 0} Updates</span>
+                                
                               </div>
                               <div className="card-footer bg-transparent d-flex justify-content-between">
                                 <button className="btn btn-sm btn-light" onClick={(e) => { e.stopPropagation(); navigate(`/plans/edit/${plan.id}`); }}>✏️ Edit</button>
