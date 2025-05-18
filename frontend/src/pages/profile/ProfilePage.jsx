@@ -35,12 +35,13 @@ const ProfilePage = () => {
 
   const [progressUpdates, setProgressUpdates] = useState([]);
   const [showProgressUpdates, setShowProgressUpdates] = useState(false);
+  const [progressTab, setProgressTab] = React.useState("unread"); // 'unread' or 'all'
+  const unreadCount = progressUpdates.filter((update) => !update.read).length;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [progressTab, setProgressTab] = React.useState("unread"); // 'unread' or 'all'
-  const unreadCount = progressUpdates.filter((update) => !update.read).length;
+
   const [activeTab, setActiveTab] = useState("plans");
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const snap = useSnapshot(state);
@@ -320,6 +321,36 @@ const ProfilePage = () => {
       console.error("Error marking deadline as completed", error);
     }
   };
+
+  const handleDeleteDeadline = async (deadlineId) => {
+    const userId = localStorage.getItem("userId");
+    if (!window.confirm("Are you sure you want to delete this deadline?")) return;
+
+    if (!userId) {
+      alert("User ID not found. Please log in again.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/deadlines/user/${userId}/delete/${deadlineId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        setDeadlines((prev) => prev.filter((d) => d.id !== deadlineId));
+      } else {
+        const errMsg = await response.text();
+        alert("Failed to delete deadline: " + errMsg);
+      }
+    } catch (error) {
+      console.error("Error deleting deadline:", error);
+      alert("Something went wrong.");
+    }
+  };
+
 
 
   // const markDeadlineAsCompleted = async (deadlineId) => {
@@ -732,6 +763,12 @@ const ProfilePage = () => {
                                 >
                                   Mark as Complete
                                 </button>
+                                <button
+                                  className="btn btn-sm btn-outline-secondary"
+                                  onClick={() => handleDeleteDeadline(deadline.id)}
+                                >
+                                  Delete
+                                </button>
                               </div>
                             )}
                           </li>
@@ -900,62 +937,62 @@ const ProfilePage = () => {
 
 
             {activeTab === "posts" && (
-            <>
-              <h4 className="mb-3">Your Skill Posts</h4>
-              {userPosts.length === 0 ? (
-                <p>You have not shared any skill posts yet.</p>
-              ) : (
-                <div className="row">
-                  {userPosts.map((post) => (
-                    <div key={post.id} className="col-12 col-sm-6 col-md-4 mb-4">
-                      <div className="card h-100 shadow-sm post-card">
-                        <div className="card-body d-flex flex-column">
-                          <p className="text-dark mb-2">{post.contentDescription}</p>
+              <>
+                <h4 className="mb-3">Your Skill Posts</h4>
+                {userPosts.length === 0 ? (
+                  <p>You have not shared any skill posts yet.</p>
+                ) : (
+                  <div className="row">
+                    {userPosts.map((post) => (
+                      <div key={post.id} className="col-12 col-sm-6 col-md-4 mb-4">
+                        <div className="card h-100 shadow-sm post-card">
+                          <div className="card-body d-flex flex-column">
+                            <p className="text-dark mb-2">{post.contentDescription}</p>
 
-                          {post.mediaType?.startsWith("image") && (
-                            <img
-                              src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
-                              alt="Post"
-                              className="img-fluid rounded mb-3"
-                              style={{ objectFit: "cover", height: "200px" }}
-                            />
-                          )}
+                            {post.mediaType?.startsWith("image") && (
+                              <img
+                                src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
+                                alt="Post"
+                                className="img-fluid rounded mb-3"
+                                style={{ objectFit: "cover", height: "200px" }}
+                              />
+                            )}
 
-                          {post.mediaType?.startsWith("video") && (
-                            <video
-                              controls
-                              src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
-                              className="w-100 mb-3 rounded"
-                              style={{ height: "200px" }}
-                            />
-                          )}
+                            {post.mediaType?.startsWith("video") && (
+                              <video
+                                controls
+                                src={`http://localhost:8080/${post.mediaLink.replace(/^\/?/, '')}`}
+                                className="w-100 mb-3 rounded"
+                                style={{ height: "200px" }}
+                              />
+                            )}
 
-                          <small className="text-muted mt-auto">
-                            Posted on {new Date(post.timestamp).toLocaleString()}
-                          </small>
+                            <small className="text-muted mt-auto">
+                              Posted on {new Date(post.timestamp).toLocaleString()}
+                            </small>
 
-                          <div className="d-flex justify-content-between mt-2">
-                            <button className="btn btn-outline-primary btn-sm" onClick={() => handleEditPost(post)}>Edit</button>
-                            <button className="btn btn-outline-danger btn-sm" onClick={() => handleDeletePost(post.id)}>Delete</button>
-                            <button className="btn btn-outline-secondary btn-sm" onClick={() => openCommentModal(post)}>Comment</button>
+                            <div className="d-flex justify-content-between mt-2">
+                              <button className="btn btn-outline-primary btn-sm" onClick={() => handleEditPost(post)}>Edit</button>
+                              <button className="btn btn-outline-danger btn-sm" onClick={() => handleDeletePost(post.id)}>Delete</button>
+                              <button className="btn btn-outline-secondary btn-sm" onClick={() => openCommentModal(post)}>Comment</button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
 
-          {/* Comment Modal */}
-        {selectedPost && (
-          <CommentSection
-            open={commentModalOpen}
-            onClose={() => setCommentModalOpen(false)}
-            post={selectedPost}
-          />
-        )}
+            {/* Comment Modal */}
+            {selectedPost && (
+              <CommentSection
+                open={commentModalOpen}
+                onClose={() => setCommentModalOpen(false)}
+                post={selectedPost}
+              />
+            )}
 
             {/* Followers Modal */}
             <Modal show={showFollowers} onHide={() => setShowFollowers(false)}>
