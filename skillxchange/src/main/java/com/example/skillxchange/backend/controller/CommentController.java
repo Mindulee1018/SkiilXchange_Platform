@@ -96,6 +96,7 @@ public class CommentController {
                 : ResponseEntity.status(403).build();
     }
 
+    //Get comments of a post
     @GetMapping("/post/{postId}")
     public List<Comment> getCommentsByPostId(@PathVariable String postId) {
         return commentService.getCommentsByPostId(postId);
