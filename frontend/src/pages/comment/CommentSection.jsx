@@ -68,6 +68,7 @@ const CommentSection = ({ open, onClose, post }) => {
     }
   };
 
+//update comment
   const updateComment = async (id) => {
     if (!updatingCommentText.trim()) {
       message.warning("Comment cannot be empty");
