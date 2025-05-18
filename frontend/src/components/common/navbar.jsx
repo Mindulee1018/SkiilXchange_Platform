@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
-
 const Navbar = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
@@ -34,9 +33,6 @@ const Navbar = () => {
 
     fetchProfile();
   }, []);
-
-
-
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-4">
@@ -76,12 +72,20 @@ const Navbar = () => {
             </Link>
           </li>
           <li className="nav-item">
+            <Link className="nav-link" to="/plans">
+              Your Plans
+            </Link>
+          </li>
+          <li className="nav-item">
             <Link className="nav-link" to="/foryou">
               For You
             </Link>
           </li>
         </ul>
+      </div>
 
+      {/* Profile & Logout outside collapsible section, aligned to right */}
+      <div className="d-flex align-items-center ms-auto">
         {profile ? (
           <div className="d-flex align-items-center gap-3">
             <div
