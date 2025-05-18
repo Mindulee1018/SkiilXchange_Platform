@@ -637,7 +637,7 @@ const ProfilePage = () => {
                       >
                         Read
                       </button>
-                      
+
                     </div>
 
                     {/* Progress Updates List */}
@@ -646,7 +646,7 @@ const ProfilePage = () => {
                         ? progressUpdates.filter((update) => !update.read)
                         : progressTab === "read"
                           ? progressUpdates.filter((update) => update.read)
-                        : progressUpdates
+                          : progressUpdates
                       ).map((update) => (
                         <li
                           key={update.id}
@@ -676,9 +676,9 @@ const ProfilePage = () => {
                       {progressTab === "unread" &&
                         progressUpdates.filter((update) => !update.read)
                           .length === 0 && <p>No unread updates.</p>}
-                        {progressTab === "read" &&
+                      {progressTab === "read" &&
                         progressUpdates.filter((update) => update.read)
-                          .length === 0 && <p>No read updates.</p>} 
+                          .length === 0 && <p>No read updates.</p>}
                       {progressTab === "all" &&
                         progressUpdates.length === 0 && (
                           <p>No progress updates.</p>
@@ -879,65 +879,69 @@ const ProfilePage = () => {
             {/* Public Learning Plans */}
             {activeTab === "plans" && (
 
-            <>  
-            <h4 className="mb-3">Your Public Learning Plans</h4>
-            {publicPlans.length === 0 ? (
-              <p>You have no public plans yet.</p>
-            ) : (
-              <div className="row">
-                {publicPlans.map((plan) => (
-                  <div key={plan.id} className="col-12 col-sm-6 mb-4">
-                    <div
-                  className="card h-100 border-0 shadow-sm plan-card"
-                  onClick={() => navigate(`/plans/view/${plan.id}`)}
-                  style={{ cursor: 'pointer', transition: '0.3s ease' }}
-                  onMouseEnter={e => e.currentTarget.classList.add('shadow-lg')}
-                  onMouseLeave={e => e.currentTarget.classList.remove('shadow-lg')}
-                >
-                      <div className="card-body">
-                        <h5 className="card-title fw-bold">{plan.title}</h5>
-                        <h6 className="card-subtitle mb-2 text-primary">{plan.skill}</h6>
-                        <p className="card-text text-muted">{plan.description}</p>
-                        <div className="text-muted small">
-                          {plan.tags?.map((tag, i) => {
-                            const customColors = [
-                              '#6f42c1', // purple
-                              '#20c997', // teal
-                              '#fd7e14', // orange
-                              '#0dcaf0', // cyan
-                              '#d63384', // pink
-                              '#ffc107', // yellow
-                              '#198754', // green
-                              '#0d6efd'  // blue
-                            ];
-                            const bgColor = customColors[i % customColors.length];
+              <>
+                <h4 className="mb-3">Your Public Learning Plans</h4>
+                {publicPlans.length === 0 ? (
+                  <p>You have no public plans yet.</p>
+                ) : (
+                  <div className="row">
+                    {publicPlans.map((plan) => (
+                      <div key={plan.id} className="col-12 col-sm-6 mb-4">
+                        <div
+                          className="card h-100 border-0 shadow-sm plan-card"
+                          onClick={() => navigate(`/plans/view/${plan.id}`)}
+                          style={{ cursor: 'pointer', transition: '0.3s ease' }}
+                          onMouseEnter={e => e.currentTarget.classList.add('shadow-lg')}
+                          onMouseLeave={e => e.currentTarget.classList.remove('shadow-lg')}
+                        >
+                          <div className="card-body">
+                            <h5 className="card-title fw-bold">{plan.title}</h5>
+                            <h6 className="card-subtitle mb-2 text-primary">{plan.skill}</h6>
+                            <p className="card-text text-muted">{plan.description}</p>
+                            <div className="text-muted small">
+                              {plan.tags?.map((tag, i) => {
+                                const customColors = [
+                                  '#6f42c1', // purple
+                                  '#20c997', // teal
+                                  '#fd7e14', // orange
+                                  '#0dcaf0', // cyan
+                                  '#d63384', // pink
+                                  '#ffc107', // yellow
+                                  '#198754', // green
+                                  '#0d6efd'  // blue
+                                ];
+                                const bgColor = customColors[i % customColors.length];
 
-                            return (
-                              <span
-                                key={i}
-                                className="badge me-1"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(`/search?tag=${tag}`);
-                                }}
-                                style={{
-                                  cursor: 'pointer',
-                                  backgroundColor: bgColor,
-                                  color: 'white',
-                                  padding: '0.5em 0.75em',
-                                  fontSize: '0.80rem'
-                                }}
-                              >
-                                {tag}
-                              </span>
-                            );
-                          })}
+                                return (
+                                  <span
+                                    key={i}
+                                    className="badge me-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/search?tag=${tag}`);
+                                    }}
+                                    style={{
+                                      cursor: 'pointer',
+                                      backgroundColor: bgColor,
+                                      color: 'white',
+                                      padding: '0.5em 0.75em',
+                                      fontSize: '0.80rem'
+                                    }}
+                                  >
+                                    {tag}
+                                  </span>
+                                );
+                              })}
 
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
+
                 )}
+
               </>
             )}
 
@@ -1078,6 +1082,7 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
+
     </>
   );
 };
